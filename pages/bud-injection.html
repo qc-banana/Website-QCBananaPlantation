@@ -1,0 +1,184 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1.0">
+  <title>Bud Injection - QC Banana</title>
+  <link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+  <div id="sidebarOverlay" class="sidebar-overlay"></div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="brand">
+      <div class="brand-icon">🍌</div>
+      <div>
+        <strong>QC Banana Reformasi</strong>
+        <span>Quality Control</span>
+      </div>
+    </div>
+    <nav class="sidebar-nav">
+      <a href="../index.html" class="nav-link">🏠 <span>Dashboard</span></a>
+      <div class="nav-section-title">📊 DATA QC</div>
+      <a href="bibit.html" class="nav-link">🌱 <span>Pengamatan Bibit</span></a>
+      <a href="agronomi.html" class="nav-link">🌿 <span>Agronomi</span></a>
+      <a href="bud-injection.html" class="nav-link active">💉 <span>Bud Injection</span></a>
+      <a href="propping.html" class="nav-link">🌴 <span>Propping</span></a>
+      <a href="buah-10mg.html" class="nav-link">🍌 <span>Buah 10 MG Shooting</span></a>
+    </nav>
+    <div class="sidebar-bottom">
+      <div id="sidebarUserStatus" class="user-status">
+        <span>👤</span>
+        <span>Pengunjung</span>
+      </div>
+      <button id="sidebarLoginBtn" class="btn btn-primary btn-full">🔐 Login Petugas</button>
+      <button id="sidebarLogoutBtn" class="btn btn-danger btn-full hidden">↪ Logout</button>
+    </div>
+  </aside>
+
+  <main class="main-content">
+    <header class="topbar">
+      <button id="menuToggle" class="menu-toggle">☰</button>
+      <div class="topbar-title">
+        <span class="eyebrow">DATA QUALITY CONTROL</span>
+        <h1>QC Banana Plantation</h1>
+      </div>
+      <div class="topbar-actions">
+        <div id="topUserStatus" class="status-pill">👤 Pengunjung</div>
+        <button id="loginBtn" class="btn btn-primary">🔐 Login Petugas</button>
+        <button id="logoutBtn" class="btn btn-danger hidden">↪ Logout</button>
+      </div>
+    </header>
+
+    <section class="page-header">
+      <div>
+        <span class="eyebrow">DATA QC</span>
+        <h2>💉 Bud Injection</h2>
+        <p>Monitoring proses dan hasil pelaksanaan bud injection.</p>
+      </div>
+      <div class="page-actions">
+        <button id="uploadExcelBtn" class="btn btn-light staff-only hidden">📤 Upload Excel/CSV</button>
+        <input id="excelFileInput" class="hidden" type="file" accept=".xlsx,.xls,.csv">
+        <button id="addDataBtn" class="btn btn-primary staff-only hidden">＋ Tambah Data</button>
+      </div>
+    </section>
+
+    <section class="filter-bar">
+      <div class="filter-group">
+        <label for="yearFilter">📅 TAHUN</label>
+        <select id="yearFilter">
+          <option value="all">Semua Tahun</option>
+          <option value="2022">2022</option>
+          <option value="2023">2023</option>
+          <option value="2024">2024</option>
+          <option value="2025">2025</option>
+          <option value="2026">2026</option>
+        </select>
+      </div>
+      <div class="filter-group">
+        <label for="regionFilter">📍 WILAYAH / PG</label>
+        <select id="regionFilter">
+          <option value="all">Semua Wilayah</option>
+          <option value="PG1">PG1</option>
+          <option value="PG2">PG2</option>
+          <option value="PG3">PG3</option>
+          <option value="PG4">PG4</option>
+        </select>
+      </div>
+      <button id="resetFilters" class="btn filter-reset">↻ Reset Filter</button>
+    </section>
+
+    <section class="table-panel">
+      <div class="table-toolbar">
+        <div class="table-note">Filter diterapkan pada tabel. Petugas juga dapat Upload Excel/CSV atau Edit data.</div>
+        <div class="table-note"><b id="recordCount">0</b> data tampil</div>
+      </div>
+      <div class="table-wrap">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Tanggal</th>
+              <th>Tahun</th>
+              <th>Wilayah / PG</th>
+              <th>Lokasi</th>
+              <th>Parameter</th>
+              <th>Hasil</th>
+              <th>Status</th>
+              <th id="actionHead" class="hidden">Aksi</th>
+            </tr>
+          </thead>
+          <tbody id="dataTableBody"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <footer class="footer">QC Banana • Data demo disimpan di localStorage browser</footer>
+  </main>
+
+  <div id="loginModal" class="modal hidden">
+    <div class="modal-backdrop" data-close-login></div>
+    <div class="modal-dialog">
+      <button class="modal-close" data-close-login>×</button>
+      <div class="modal-icon">🔐</div>
+      <h2>Login Petugas</h2>
+      <p>Masuk untuk mendapatkan akses tambah, edit, dan hapus data.</p>
+      <form id="loginForm">
+        <label>Username</label>
+        <input id="username" required>
+        <label>Password</label>
+        <input id="password" type="password" required>
+        <div id="loginError" class="form-error hidden"></div>
+        <button class="btn btn-primary btn-full">Login</button>
+      </form>
+      <div class="demo-credential">Demo: <b>petugas</b> / <b>qcbanana</b></div>
+    </div>
+  </div>
+
+  <div id="dataModal" class="modal hidden">
+    <div class="modal-backdrop" data-close-data></div>
+    <div class="modal-dialog">
+      <button class="modal-close" data-close-data>×</button>
+      <div class="modal-icon">📝</div>
+      <h2 id="dataModalTitle">Tambah Data QC</h2>
+      <p>Isi data pengamatan. Data disimpan di browser.</p>
+      <form id="dataForm">
+        <input type="hidden" id="editIndex">
+        <label>Tanggal</label>
+        <input id="dataTanggal" placeholder="30/09/2026" required>
+        <label>Tahun</label>
+        <select id="dataTahun">
+          <option>2022</option>
+          <option>2023</option>
+          <option>2024</option>
+          <option>2025</option>
+          <option selected>2026</option>
+        </select>
+        <label>Wilayah / PG</label>
+        <select id="dataWilayah">
+          <option>PG1</option>
+          <option>PG2</option>
+          <option>PG3</option>
+          <option>PG4</option>
+        </select>
+        <label>Lokasi</label>
+        <input id="dataLokasi" placeholder="Blok A01" required>
+        <label>Parameter</label>
+        <input id="dataParameter" required>
+        <label>Hasil</label>
+        <input id="dataHasil" required>
+        <label>Status</label>
+        <select id="dataStatus">
+          <option>Baik</option>
+          <option>Perlu Monitoring</option>
+          <option>Tidak Sesuai</option>
+        </select>
+        <div style="height:14px"></div>
+        <button class="btn btn-primary btn-full">💾 Simpan Data</button>
+      </form>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+  <script src="../js/script.js"></script>
+</body>
+</html>
