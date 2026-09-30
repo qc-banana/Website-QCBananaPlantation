@@ -145,6 +145,89 @@ function getBibit() {
 function saveBibit(d) {
   localStorage.setItem(BIBIT_KEY, JSON.stringify(d.map(normalizeBibitRow)));
 }
+async function syncBibitToSupabase(rows){
+  if(typeof supabaseClient==="undefined"){
+    console.warn("Supabase belum terhubung.");
+    return false;
+  }
+
+  try{
+    // Hapus data Bibit lama di database
+    const del=await supabaseClient
+      .from("bibit_data")
+      .delete()
+      .neq("id",0);
+
+    if(del.error) throw del.error;
+
+    const headers=getBibitHeaders();
+
+    // Simpan data baru ke database
+    const payload=rows.map(r=>({
+      row_data:normalizeBibitRow(r),
+      headers:headers
+    }));
+
+    const chunkSize=500;
+
+    for(let i=0;i<payload.length;i+=chunkSize){
+      const chunk=payload.slice(i,i+chunkSize);
+
+      const ins=await supabaseClient
+        .from("bibit_data")
+        .insert(chunk);
+
+      if(ins.error) throw ins.error;
+    }
+
+    console.log("Data Bibit berhasil disimpan ke Supabase.");
+    return true;
+
+  }catch(err){
+    console.error("Gagal sinkronisasi Supabase:",err);
+    alert("Data tersimpan di browser, tetapi belum berhasil dikirim ke database online.");
+    return false;
+  }
+}
+
+async function loadBibitFromSupabase(){
+  if(typeof supabaseClient==="undefined"){
+    console.warn("Supabase belum terhubung.");
+    return;
+  }
+
+  try{
+    const res=await supabaseClient
+      .from("bibit_data")
+      .select("row_data,headers")
+      .order("id",{ascending:true});
+
+    if(res.error) throw res.error;
+
+    if(!res.data || !res.data.length){
+      console.log("Database Supabase masih kosong.");
+      return;
+    }
+
+    const rows=res.data.map(x=>normalizeBibitRow(x.row_data));
+
+    const headers=res.data[0].headers;
+
+    if(Array.isArray(headers) && headers.length){
+      saveBibitHeaders(headers);
+    }
+
+    saveBibit(rows);
+
+    console.log("Data Bibit berhasil dimuat dari Supabase.");
+
+    renderBibit();
+    dashboard();
+
+  }catch(err){
+    console.error("Gagal mengambil data dari Supabase:",err);
+  }
+}
 
 function getBibitHeaders() {
   try {
@@ -597,10 +680,16 @@ function importBibit(file) {
         return;
       }
       saveBibitHeaders(headers);
-      saveBibit(rows);
-      renderBibit();
-      dashboard();
-      alert(`${rows.length} baris dari sheet Rekap per lokasi berhasil di-upload.\nGrafik Keseragaman dihitung dari kolom X, Y, Z berdasarkan PG + Week + Tahun.`);
+saveBibit(rows);
+renderBibit();
+dashboard();
+
+syncBibitToSupabase(rows).then(ok=>{
+  if(ok){
+    alert(`${rows.length} baris dari sheet Rekap per lokasi berhasil di-upload dan disimpan online.
+Grafik Keseragaman dihitung dari kolom X, Y, Z berdasarkan PG + Week + Tahun.`);
+  }
+});
     } catch (err) {
       console.error(err);
       alert("File belum bisa dibaca. Pastikan file Excel memiliki sheet Rekap per lokasi dan struktur header baris 4-5.");
@@ -609,9 +698,11 @@ function importBibit(file) {
   reader.readAsArrayBuffer(file);
 }
 
-function setupBibit() {
-  if (!document.getElementById("bibitTableBody")) return;
-  renderBibit();
+function setupBibit(){
+ if(!document.getElementById("bibitTableBody"))return;
+
+ renderBibit();
+ loadBibitFromSupabase();
   
   const yf = document.getElementById("yearFilter");
   const rf = document.getElementById("regionFilter");
