@@ -3,8 +3,8 @@
 // ============================================================
 // GANTI 2 BAGIAN INI DENGAN DATA DARI PROJECT SUPABASE KAMU
 
-const SUPABASE_URL = "GANTI_DENGAN_PROJECT_URL";
-const SUPABASE_PUBLISHABLE_KEY = "GANTI_DENGAN_PUBLISHABLE_KEY";
+const SUPABASE_URL = "https://dbhgwqsrybfflymwoclh.supabase.co";
+const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_uLhOuqURk-ahjxOCXNmw9g_q10IG5yJ";
 
 // Jangan gunakan service_role / secret key di sini.
 const qcSupabase =
