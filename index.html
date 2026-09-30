@@ -196,7 +196,17 @@
       <div class="demo-credential">Demo: <b>petugas</b> / <b>qcbanana</b></div>
     </div>
   </div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
+<script>
+  const SUPABASE_URL = "https://dbhgwqsrybfflymwoclh.supabase.co/rest/v1/";
+  const SUPABASE_KEY = "sb_publishable_uLhOuqURk-ahjxOCXNmw9g_q10IG5yJ";
+
+  const supabaseClient = window.supabase.createClient(
+    SUPABASE_URL,
+    SUPABASE_KEY
+  );
+</script>
   <script src="js/script.js"></script>
 </body>
 </html>
