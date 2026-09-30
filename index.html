@@ -1,0 +1,202 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>QC Banana Plantation - Quality Control</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <div id="sidebarOverlay" class="sidebar-overlay"></div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="brand">
+      <div class="brand-icon">🍌</div>
+      <div>
+        <strong>QC Banana Reformasi</strong>
+        <span>Quality Control</span>
+      </div>
+    </div>
+    <nav class="sidebar-nav">
+      <a href="index.html" class="nav-link active">🏠 <span>Dashboard</span></a>
+      <div class="nav-section-title">📊 DATA QC</div>
+      <a href="pages/bibit.html" class="nav-link">🌱 <span>Pengamatan Bibit</span></a>
+      <a href="pages/agronomi.html" class="nav-link">🌿 <span>Agronomi</span></a>
+      <a href="pages/bud-injection.html" class="nav-link">💉 <span>Bud Injection</span></a>
+      <a href="pages/propping.html" class="nav-link">🌴 <span>Propping</span></a>
+      <a href="pages/buah-10mg.html" class="nav-link">🍌 <span>Buah 10 MG Shooting</span></a>
+    </nav>
+    <div class="sidebar-bottom">
+      <div id="sidebarUserStatus" class="user-status">
+        <span>👤</span>
+        <span>Pengunjung</span>
+      </div>
+      <button id="sidebarLoginBtn" class="btn btn-primary btn-full">🔐 Login Petugas</button>
+      <button id="sidebarLogoutBtn" class="btn btn-danger btn-full hidden">↪ Logout</button>
+    </div>
+  </aside>
+
+  <main class="main-content">
+    <header class="topbar">
+      <button id="menuToggle" class="menu-toggle" aria-label="Buka menu">☰</button>
+      <div class="topbar-title">
+        <span class="eyebrow">QUALITY CONTROL</span>
+        <h1>QC Banana Plantation</h1>
+      </div>
+      <div class="topbar-actions">
+        <div id="topUserStatus" class="status-pill">👤 Pengunjung</div>
+        <button id="loginBtn" class="btn btn-primary">🔐 Login Petugas</button>
+        <button id="logoutBtn" class="btn btn-danger hidden">↪ Logout</button>
+      </div>
+    </header>
+
+    <section class="hero">
+      <div>
+        <span class="badge">🍌 Plantation Quality Control</span>
+        <h2>Dashboard Quality Control Banana</h2>
+        <p>Sistem digital untuk memonitor data Quality Control pada proses plantation banana. Pengunjung dapat melihat data, sedangkan petugas dapat mengelola data QC.</p>
+        <div class="hero-actions">
+          <a href="pages/bibit.html" class="btn btn-primary">Lihat Data QC →</a>
+          <button id="heroLoginBtn" class="btn btn-light">🔐 Login Petugas</button>
+        </div>
+      </div>
+      <div class="hero-illustration" aria-hidden="true">🍌</div>
+    </section>
+
+    <section class="latest-year-card">
+      <div>
+        <span class="eyebrow">RINGKASAN TERBARU</span>
+        <h2>Data Tahun <span id="latestYear">-</span></h2>
+        <p>Dashboard selalu mengambil <b>tahun paling terbaru yang tersedia di data</b>, bukan tahun yang ditulis manual.</p>
+      </div>
+      <div class="latest-year-badge">📅 <span id="latestYearBadge">-</span></div>
+    </section>
+
+    <section class="dashboard-grid">
+      <div class="dashboard-chart panel">
+        <div class="panel-header chart-header">
+          <div>
+            <span class="eyebrow">PENGAMATAN BIBIT</span>
+            <h2>Keseragaman Bibit</h2>
+            <p>Menampilkan 4 grafik per PG berdasarkan 5 Week terbaru pada tahun terbaru.</p>
+          </div>
+          <a href="pages/bibit.html" class="mini-link">Kelola →</a>
+        </div>
+        <div id="bibitChart" class="dashboard-bars">
+          <div class="chart-empty">Belum ada data bibit.</div>
+        </div>
+      </div>
+
+      <div class="dashboard-summary panel">
+        <div class="panel-header">
+          <span class="eyebrow">STATUS DATA</span>
+          <h2>Ringkasan 5 Data QC</h2>
+        </div>
+        <div id="latestSummary" class="latest-summary"></div>
+      </div>
+    </section>
+
+    <section class="section-header">
+      <div>
+        <span class="eyebrow">MONITORING</span>
+        <h2>Menu Data QC</h2>
+      </div>
+      <p>Pilih kategori pemeriksaan yang ingin dilihat.</p>
+    </section>
+
+    <section class="qc-grid">
+      <a class="qc-card" href="pages/bibit.html">
+        <div class="qc-icon">🌱</div>
+        <div>
+          <h3>Pengamatan Bibit</h3>
+          <p>Monitoring kualitas dan kondisi bibit.</p>
+        </div>
+        <span class="card-arrow">→</span>
+      </a>
+      <a class="qc-card" href="pages/agronomi.html">
+        <div class="qc-icon">🌿</div>
+        <div>
+          <h3>Agronomi</h3>
+          <p>Monitoring parameter agronomi tanaman.</p>
+        </div>
+        <span class="card-arrow">→</span>
+      </a>
+      <a class="qc-card" href="pages/bud-injection.html">
+        <div class="qc-icon">💉</div>
+        <div>
+          <h3>Bud Injection</h3>
+          <p>Monitoring proses dan hasil bud injection.</p>
+        </div>
+        <span class="card-arrow">→</span>
+      </a>
+      <a class="qc-card" href="pages/propping.html">
+        <div class="qc-icon">🌴</div>
+        <div>
+          <h3>Propping</h3>
+          <p>Monitoring kegiatan dan hasil propping.</p>
+        </div>
+        <span class="card-arrow">→</span>
+      </a>
+      <a class="qc-card" href="pages/buah-10mg.html">
+        <div class="qc-icon">🍌</div>
+        <div>
+          <h3>Buah 10 MG Shooting</h3>
+          <p>Monitoring pemeriksaan buah 10 MG Shooting.</p>
+        </div>
+        <span class="card-arrow">→</span>
+      </a>
+    </section>
+
+    <section class="info-grid">
+      <div class="panel">
+        <div class="panel-header">
+          <span class="eyebrow">AKSES</span>
+          <h2>Status Pengguna</h2>
+        </div>
+        <div class="access-box">
+          <div id="dashboardStatusIcon" class="access-icon">👤</div>
+          <div>
+            <strong id="dashboardStatusTitle">Mode Pengunjung</strong>
+            <p id="dashboardStatusText">Anda dapat melihat dashboard dan seluruh data QC.</p>
+          </div>
+        </div>
+      </div>
+      <div class="panel">
+        <div class="panel-header">
+          <span class="eyebrow">CATATAN</span>
+          <h2>Template Demo</h2>
+        </div>
+        <ul class="feature-list">
+          <li>✓ Data dummy tersimpan di browser.</li>
+          <li>✓ CRUD hanya tersedia untuk petugas.</li>
+          <li>✓ Login demo: <b>petugas</b> / <b>qcbanana</b>.</li>
+          <li>✓ Data dapat diganti dengan data QC asli perusahaan.</li>
+        </ul>
+      </div>
+    </section>
+
+    <footer class="footer">QC Banana • Quality Control • Template Frontend</footer>
+  </main>
+
+  <div id="loginModal" class="modal hidden">
+    <div class="modal-backdrop" data-close-login></div>
+    <div class="modal-dialog">
+      <button class="modal-close" data-close-login>×</button>
+      <div class="modal-icon">🔐</div>
+      <h2>Login Petugas</h2>
+      <p>Masuk untuk mendapatkan akses tambah, edit, dan hapus data.</p>
+      <form id="loginForm">
+        <label>Username</label>
+        <input id="username" required autocomplete="username" placeholder="petugas">
+        <label>Password</label>
+        <input id="password" type="password" required autocomplete="current-password" placeholder="qcbanana">
+        <div id="loginError" class="form-error hidden"></div>
+        <button class="btn btn-primary btn-full" type="submit">Login</button>
+      </form>
+      <div class="demo-credential">Demo: <b>petugas</b> / <b>qcbanana</b></div>
+    </div>
+  </div>
+
+  <script src="js/script.js"></script>
+</body>
+</html>
