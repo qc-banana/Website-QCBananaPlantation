@@ -1,0 +1,236 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1.0">
+  <title>Pengamatan Bibit - QC Banana</title>
+  <link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+  <div id="sidebarOverlay" class="sidebar-overlay"></div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="brand">
+      <div class="brand-icon">🍌</div>
+      <div>
+        <strong>QC Banana Reformasi</strong>
+        <span>Quality Control</span>
+      </div>
+    </div>
+    <nav class="sidebar-nav">
+      <a href="../index.html" class="nav-link">🏠 <span>Dashboard</span></a>
+      <div class="nav-section-title">📊 DATA QC</div>
+      <a href="bibit.html" class="nav-link active">🌱 <span>Pengamatan Bibit</span></a>
+      <a href="agronomi.html" class="nav-link">🌿 <span>Agronomi</span></a>
+      <a href="bud-injection.html" class="nav-link">💉 <span>Bud Injection</span></a>
+      <a href="propping.html" class="nav-link">🌴 <span>Propping</span></a>
+      <a href="buah-10mg.html" class="nav-link">🍌 <span>Buah 10 MG Shooting</span></a>
+    </nav>
+    <div class="sidebar-bottom">
+      <div id="sidebarUserStatus" class="user-status">
+        <span>👤</span>
+        <span>Pengunjung</span>
+      </div>
+      <button id="sidebarLoginBtn" class="btn btn-primary btn-full">🔐 Login Petugas</button>
+      <button id="sidebarLogoutBtn" class="btn btn-danger btn-full hidden">↪ Logout</button>
+    </div>
+  </aside>
+
+  <main class="main-content">
+    <header class="topbar">
+      <button id="menuToggle" class="menu-toggle">☰</button>
+      <div class="topbar-title">
+        <span class="eyebrow">DATA QUALITY CONTROL</span>
+        <h1>QC Banana Plantation</h1>
+      </div>
+      <div class="topbar-actions">
+        <div id="topUserStatus" class="status-pill">👤 Pengunjung</div>
+        <button id="loginBtn" class="btn btn-primary">🔐 Login Petugas</button>
+        <button id="logoutBtn" class="btn btn-danger hidden">↪ Logout</button>
+      </div>
+    </header>
+
+    <section class="page-header">
+      <div>
+        <span class="eyebrow">DATA QC / BIBIT</span>
+        <h2>🌱 Pengamatan Bibit</h2>
+        <p>Format tabel mengikuti struktur data QC bibit yang Dinda tunjukkan. Untuk tahap ini kita fokus menyempurnakan Bibit dulu.</p>
+      </div>
+      <div class="page-actions">
+        <button id="uploadExcelBtn" class="btn btn-light staff-only hidden">📤 Upload Excel/CSV</button>
+        <input id="excelFileInput" class="hidden" type="file" accept=".xlsx,.xls,.csv">
+        <button id="addDataBtn" class="btn btn-primary staff-only hidden">＋ Input Manual</button>
+      </div>
+    </section>
+
+    <section class="filter-bar">
+      <div class="filter-group">
+        <label for="yearFilter">📅 TAHUN</label>
+        <select id="yearFilter">
+          <option value="all">Semua Tahun</option>
+          <option value="2022">2022</option>
+          <option value="2023">2023</option>
+          <option value="2024">2024</option>
+          <option value="2025">2025</option>
+          <option value="2026">2026</option>
+        </select>
+      </div>
+      <div class="filter-group">
+        <label for="regionFilter">📍 WILAYAH / PG</label>
+        <select id="regionFilter">
+          <option value="all">Semua Wilayah</option>
+          <option value="PG1">PG1</option>
+          <option value="PG2">PG2</option>
+          <option value="PG3">PG3</option>
+          <option value="PG4">PG4</option>
+        </select>
+      </div>
+      <button id="resetFilters" class="btn filter-reset">↻ Reset Filter</button>
+    </section>
+
+    <section class="bibit-chart-panel panel">
+      <div class="panel-header chart-header">
+        <div>
+          <span class="eyebrow">VISUALISASI DATA BIBIT</span>
+          <h2>📊 Grafik Keseragaman Bibit</h2>
+          <p>Menampilkan distribusi keseragaman <b>&lt;20 (K)</b>, <b>20 s/d 25 (S)</b>, dan <b>26 s/d 35 (B)</b> dari <b>5 Week terbaru</b>.</p>
+        </div>
+        <div class="chart-filter-info">Filter: <b id="bibitChartFilterInfo">Semua Tahun • Semua PG</b></div>
+      </div>
+
+      <div class="bibit-chart-wrap">
+        <div id="bibitChartArea" class="bibit-chart-area">
+          <div class="chart-empty">Belum ada data untuk ditampilkan.</div>
+        </div>
+      </div>
+
+      <div id="bibitChartLegend" class="bibit-chart-legend"></div>
+    </section>
+
+    <section class="table-panel">
+      <div class="table-toolbar">
+        <div class="table-note">Seluruh data yang ditampilkan berasal dari sheet <b>Rekap per lokasi</b>. Grafik Keseragaman dihitung dari kolom <b>X, Y, Z</b> berdasarkan PG + Week + Tahun.</div>
+        <div class="table-note"><b id="recordCount">0</b> data tampil</div>
+      </div>
+      <div class="table-wrap">
+        <table class="data-table bibit-table">
+          <thead id="bibitTableHead"></thead>
+          <tbody id="bibitTableBody"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="bibit-note panel">
+      <div class="panel-header">
+        <span class="eyebrow">CATATAN</span>
+        <h2>Fokus tahap sekarang</h2>
+      </div>
+      <p>Kolom dan alur Bibit sedang dibuat dulu supaya cocok dengan file QC asli. Setelah ini sudah pas, pola yang sama bisa diterapkan ke Agronomi, Bud Injection, Propping, dan Buah 10 MG Shooting.</p>
+    </section>
+    <footer class="footer">QC Banana • Pengamatan Bibit • Data prototype disimpan di browser</footer>
+  </main>
+
+  <div id="loginModal" class="modal hidden">
+    <div class="modal-backdrop" data-close-login></div>
+    <div class="modal-dialog">
+      <button class="modal-close" data-close-login>×</button>
+      <div class="modal-icon">🔐</div>
+      <h2>Login Petugas</h2>
+      <p>Masuk untuk mendapatkan akses tambah, edit, hapus, dan upload.</p>
+      <form id="loginForm">
+        <label>Username</label>
+        <input id="username" required>
+        <label>Password</label>
+        <input id="password" type="password" required>
+        <div id="loginError" class="form-error hidden"></div>
+        <button class="btn btn-primary btn-full">Login</button>
+      </form>
+      <div class="demo-credential">Demo: <b>petugas</b> / <b>qcbanana</b></div>
+    </div>
+  </div>
+
+  <div id="dataModal" class="modal hidden">
+    <div class="modal-backdrop" data-close-data></div>
+    <div class="modal-dialog modal-large">
+      <button class="modal-close" data-close-data>×</button>
+      <div class="modal-icon">📝</div>
+      <h2 id="bibitModalTitle">Input Manual Pengamatan Bibit</h2>
+      <p>Isi bagian yang tersedia. Tidak semua kolom Excel harus diisi sekaligus.</p>
+      <form id="bibitForm">
+        <input type="hidden" id="bibitEditIndex">
+        <div class="form-block">
+          <h3>Identitas Pengamatan</h3>
+          <div class="form-grid-4">
+            <label>Pengamat<input id="bPengamat" placeholder="Yasir dan Wahyudi"></label>
+            <label>PG
+              <select id="bPG">
+                <option>PG1</option>
+                <option>PG2</option>
+                <option>PG3</option>
+                <option>PG4</option>
+              </select>
+            </label>
+            <label>Lokasi<input id="bLokasi" placeholder="030H2"></label>
+            <label>Week<input id="bWeek" type="number" min="1" placeholder="7"></label>
+            <label>Bulan<input id="bBulan" placeholder="September"></label>
+            <label>Tahun<input id="bTahun" type="number" min="2020" max="2100" value="2026"></label>
+            <label>Qty yg Diamati<input id="bQty" placeholder="16.933"></label>
+          </div>
+        </div>
+        <div class="form-block">
+          <h3>Reject Nursery</h3>
+          <div class="form-grid-4">
+            <label>HT<input id="bHT" placeholder="0,06%"></label>
+            <label>BT<input id="bBT" placeholder="0,00%"></label>
+            <label>MT<input id="bMT" placeholder="0,00%"></label>
+            <label>Virus<input id="bVirus" placeholder="0,10%"></label>
+            <label>M.Bug<input id="bMBug" placeholder="0,00%"></label>
+            <label>Cabut media / Media rusak<input id="bCabut" placeholder="0,00%"></label>
+            <label>Tidak segar<input id="bTidakSegar" placeholder="0,31%"></label>
+            <label>Patah<input id="bPatah" placeholder="0,04%"></label>
+          </div>
+        </div>
+        <div class="form-block">
+          <h3>Reject Handling</h3>
+          <div class="form-grid-4">
+            <label>&lt;15<input id="bH15" placeholder="0,00%"></label>
+            <label>&gt;30<input id="bH30" placeholder="0,00%"></label>
+            <label>Sehat<input id="bSehat" placeholder="98,60%"></label>
+            <label>Reject<input id="bReject" placeholder="1,41%"></label>
+          </div>
+        </div>
+        <div class="form-block">
+          <h3>Klasifikasi & Keseragaman</h3>
+          <div class="form-grid-4">
+            <label>Kelas bibit
+              <select id="bKelas">
+                <option>K-S</option>
+                <option>S-B</option>
+                <option>B-SB</option>
+              </select>
+            </label>
+            <label>15 s/d &lt;20<input id="bK15" placeholder="69%"></label>
+            <label>20 s/d &lt;25<input id="bK20" placeholder="14%"></label>
+            <label>≥25<input id="bK25" placeholder="0%"></label>
+            <label>Rata2 Tinggi<input id="bRataTinggi" type="number" step="0.1" placeholder="17.0"></label>
+            <label>% Score<input id="bScore" type="number" step="0.1" placeholder="86"></label>
+          </div>
+        </div>
+        <div class="form-block">
+          <h3>Girth & Rasio</h3>
+          <div class="form-grid-4">
+            <label>Rasio &lt;0,25<input id="bRasioKurang" placeholder="0%"></label>
+            <label>Rasio ≥0,25<input id="bRasioLebih" placeholder="100%"></label>
+            <label>Rata2 Girth<input id="bGirth" type="number" step="0.1" placeholder="6.3"></label>
+            <label>Rata2 Rasio<input id="bRasio" type="number" step="0.01" placeholder="0.37"></label>
+          </div>
+        </div>
+        <button class="btn btn-primary btn-full" type="submit">💾 Simpan Data</button>
+      </form>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+  <script src="../js/script.js"></script>
+</body>
+</html>
