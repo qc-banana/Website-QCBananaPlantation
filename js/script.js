@@ -217,41 +217,19 @@ async function loadBibitFromSupabase() {
   }
 
   try {
-    const pageSize = 1000;
-    let from = 0;
-    let allData = [];
+    const { data, error } = await qcSupabase
+      .from("bibit_data")
+      .select("id,row_data,headers")
+      .order("id", { ascending: true });
 
-    // Ambil semua data dari Supabase
-    while (true) {
-      const { data, error } = await qcSupabase
-        .from("bibit_data")
-        .select("id,row_data,headers")
-        .order("id", { ascending: true })
-        .range(from, from + pageSize - 1);
+    if (error) throw error;
 
-      if (error) throw error;
-
-      if (!data || !data.length) {
-        break;
-      }
-
-      allData.push(...data);
-
-      if (data.length < pageSize) {
-        break;
-      }
-
-      from += pageSize;
-    }
-
-    // Kalau database benar-benar kosong
-    if (!allData.length) {
+    if (!data || !data.length) {
       console.log("Database Supabase masih kosong.");
       return false;
     }
 
-    // Ambil headers dari data pertama yang memilikinya
-    const headerRow = allData.find(
+    const headerRow = data.find(
       row => Array.isArray(row.headers) && row.headers.length
     );
 
@@ -259,15 +237,13 @@ async function loadBibitFromSupabase() {
       saveBibitHeaders(headerRow.headers);
     }
 
-    // Ubah data Supabase menjadi format yang dipakai website
-    const rows = allData.map(row => ({
+    const rows = data.map(row => ({
       id: row.id,
       values: Array.isArray(row.row_data)
         ? row.row_data
         : []
     }));
 
-    // Simpan hasil dari Supabase ke browser
     saveBibit(rows);
 
     console.log(
@@ -277,11 +253,7 @@ async function loadBibitFromSupabase() {
     return true;
 
   } catch (err) {
-    console.error(
-      "Gagal mengambil data dari Supabase:",
-      err
-    );
-
+    console.error("Gagal mengambil data dari Supabase:", err);
     return false;
   }
 }
