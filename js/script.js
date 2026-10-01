@@ -2,11 +2,11 @@ const LOGIN_KEY = "qcBananaLoggedIn";
 const DATA_KEY = "qcBananaData";
 const BIBIT_KEY = "qcBananaBibitDetailed";
 const BIBIT_HEADERS_KEY = "qcBananaBibitHeaders";
-const SUPABASE_URL = "https://dbhgwqsrybfflymwoclh.supabase.co";
+const SUPABASE_URL = "[https://dbhgwqsrybfflymwoclh.supabase.co](https://dbhgwqsrybfflymwoclh.supabase.co)";
 const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_uLhOuqURk-ahjxOCXNmw9g_q10IG5yJ";
 
-const qcSupabase = window.supabase
-  ? window.supabase.createClient(
+const qcSupabase = window\.supabase
+  ? window\.supabase.createClient(
       SUPABASE_URL,
       SUPABASE_PUBLISHABLE_KEY
     )
@@ -104,7 +104,7 @@ function pageKey() {
 function data() {
   const k = pageKey();
   if (!k) return [];
-  const sk = DATA_KEY + "_" + k;
+  const sk = DATA_KEY + "\_" + k;
   try {
     const s = localStorage.getItem(sk);
     if (s) return JSON.parse(s);
@@ -115,7 +115,7 @@ function data() {
 
 function save(d) {
   const k = pageKey();
-  if (k) localStorage.setItem(DATA_KEY + "_" + k, JSON.stringify(d));
+  if (k) localStorage.setItem(DATA_KEY + "\_" + k, JSON.stringify(d));
 }
 
 function objectToBibitValues(d) {
@@ -178,7 +178,7 @@ async function syncBibitToSupabase(rows) {
 
     // Data yang dikirim ke Supabase
     const payload = rows.map(row => ({
-      row_data: row.values || [],
+      row_data: row\.values || [],
       headers: headers
     }));
 
@@ -230,24 +230,24 @@ async function loadBibitFromSupabase() {
     }
 
     const headerRow = data.find(
-      row => Array.isArray(row.headers) && row.headers.length
+      row => Array.isArray(row\.headers) && row\.headers.length
     );
 
     if (headerRow) {
-      saveBibitHeaders(headerRow.headers);
+      saveBibitHeaders(headerRow\.headers);
     }
 
     const rows = data.map(row => ({
-      id: row.id,
-      values: Array.isArray(row.row_data)
-        ? row.row_data
+      id: row\.id,
+      values: Array.isArray(row\.row_data)
+        ? row\.row_data
         : []
     }));
 
     saveBibit(rows);
 
     console.log(
-      `Data Bibit berhasil dimuat dari Supabase: ${rows.length} baris.`
+      \`Data Bibit berhasil dimuat dari Supabase: ${rows.length} baris.\`
     );
 
     return true;
@@ -291,7 +291,7 @@ function statusClass(v) {
 function updateUI() {
   const s = staff();
   document.querySelectorAll("#topUserStatus,#sidebarUserStatus").forEach(e => {
-    const sp = e.querySelector("span:last-child");
+    const sp = e.querySelector("span\:last-child");
     if (sp) sp.textContent = s ? "Petugas" : "Pengunjung";
     e.classList.toggle("staff", s);
   });
@@ -342,20 +342,20 @@ function renderGeneric() {
   const s = staff();
   body.innerHTML = d.length ? d.map(r => {
     const originalIndex = data().indexOf(r);
-    return `<tr>
-      <td>${esc(r[0])}</td>
-      <td>${esc(r[1])}</td>
-      <td>${esc(r[2])}</td>
-      <td>${esc(r[3])}</td>
-      <td>${esc(r[4])}</td>
-      <td>${esc(r[5])}</td>
-      <td><span class="status ${statusClass(r[6])}">${esc(r[6])}</span></td>
-      ${s ? `<td><div class="actions">
-        <button class="icon-btn edit-btn" data-edit="${originalIndex}">✏️ Edit</button>
-        <button class="icon-btn delete-btn" data-delete="${originalIndex}">🗑️ Hapus</button>
-      </div></td>` : ""}
-    </tr>`;
-  }).join("") : `<tr><td colspan="8" style="text-align:center;padding:28px;color:#7b8981">Tidak ada data untuk filter yang dipilih.</td></tr>`;
+    return \`\<tr>
+      \<td>${esc(r[0])}\</td>
+      \<td>${esc(r[1])}\</td>
+      \<td>${esc(r[2])}\</td>
+      \<td>${esc(r[3])}\</td>
+      \<td>${esc(r[4])}\</td>
+      \<td>${esc(r[5])}\</td>
+      \<td>\<span class="status ${statusClass(r[6])}">${esc(r[6])}\</span>\</td>
+      ${s ? \`\<td>\<div class="actions">
+        \<button class="icon-btn edit-btn" data-edit="${originalIndex}">✏️ Edit\</button>
+        \<button class="icon-btn delete-btn" data-delete="${originalIndex}">🗑️ Hapus\</button>
+      \</div>\</td>\` : ""}
+    \</tr>\`;
+  }).join("") : \`\<tr>\<td colspan="8" style="text-align\:center;padding:28px;color:#7b8981">Tidak ada data untuk filter yang dipilih.\</td>\</tr>\`;
   
   document.getElementById("actionHead")?.classList.toggle("hidden", !s);
   const recCount = document.getElementById("recordCount");
@@ -460,7 +460,7 @@ function importGeneric(file) {
       ]);
       save([...imported, ...data()]);
       renderGeneric();
-      alert(`${imported.length} data berhasil di-upload.`);
+      alert(\`${imported.length} data berhasil di-upload.\`);
     } catch (err) {
       console.error(err);
       alert("File belum bisa dibaca. Cek header Excel/CSV.");
@@ -562,77 +562,21 @@ function renderBibitTableHead() {
   const head = document.getElementById("bibitTableHead");
   if (!head) return;
   const h = getBibitHeaders();
-  head.innerHTML = `<tr>${h.map(x => `<th>${esc(x)}</th>`).join("")}<th class="action-col" id="actionHead">Aksi</th></tr>`;
+  head.innerHTML = \`\<tr>${h.map(x => \`\<th>${esc(x)}\</th>\`).join("")}\<th class="action-col" id="actionHead">Aksi\</th>\</tr>\`;
 }
 
 function bibitRowsFiltered() {
   const y = document.getElementById("yearFilter")?.value || "all";
   const p = document.getElementById("regionFilter")?.value || "all";
-  const w = document.getElementById("weekFilter")?.value || "all";
-
   const all = getBibit();
-
-  const rows = all.filter(r => {
-    const rowYear = String(bibitValue(r, 5));
-    const rowPG = String(bibitValue(r, 1));
-    const rowWeek = String(bibitValue(r, 3));
-
-    return (
-      (y === "all" || rowYear === y) &&
-      (p === "all" || rowPG === p) &&
-      (w === "all" || rowWeek === w)
-    );
-  });
-
-  return { y, p, w, all, rows };
+  return { y, p, all, rows: all.filter(r => (y === "all" || String(bibitValue(r, 5)) === y) && (p === "all" || String(bibitValue(r, 1)) === p)) };
 }
-function updateWeekFilter() {
-  const weekFilter = document.getElementById("weekFilter");
-  if (!weekFilter) return;
-
-  const y = document.getElementById("yearFilter")?.value || "all";
-  const p = document.getElementById("regionFilter")?.value || "all";
-
-  const all = getBibit();
-
-  const weeks = [
-    ...new Set(
-      all
-        .filter(r => {
-          const rowYear = String(bibitValue(r, 5));
-          const rowPG = String(bibitValue(r, 1));
-
-          return (
-            (y === "all" || rowYear === y) &&
-            (p === "all" || rowPG === p)
-          );
-        })
-        .map(r => Number(bibitValue(r, 3)))
-        .filter(Number.isFinite)
-    )
-  ].sort((a, b) => a - b);
-
-  const currentWeek = weekFilter.value;
-
-  weekFilter.innerHTML =
-    `<option value="all">Semua Week</option>` +
-    weeks
-      .map(w => `<option value="${w}">Week ${w}</option>`)
-      .join("");
-
-  if (weeks.includes(Number(currentWeek))) {
-    weekFilter.value = currentWeek;
-  } else {
-    weekFilter.value = "all";
-  }
-}
-
 
 function renderBibit() {
   const body = document.getElementById("bibitTableBody");
   if (!body) return;
   renderBibitTableHead();
-  const { y, p, w, all, rows } = bibitRowsFiltered();
+  const { y, p, all, rows } = bibitRowsFiltered();
   const s = staff();
   
   const recCount = document.getElementById("recordCount");
@@ -641,33 +585,26 @@ function renderBibit() {
   const headers = getBibitHeaders();
   body.innerHTML = rows.length ? rows.map(r => {
     const idx = all.indexOf(r);
-    const cells = r.values.map(v => `<td>${esc(formatBibitCell(v))}</td>`).join("");
-    return `<tr>${cells}<td class="action-col">${s ? `<button class="icon-btn edit-btn" onclick="openBibitModal(${idx})">✏️ Edit</button><button class="icon-btn delete-btn" onclick="deleteBibit(${idx})">🗑️ Hapus</button>` : "-"}</td></tr>`;
-  }).join("") : `<tr><td colspan="${headers.length + 1}" style="text-align:center;padding:28px;color:#7b8981">Tidak ada data untuk filter yang dipilih.</td></tr>`;
+    const cells = r.values.map(v => \`\<td>${esc(formatBibitCell(v))}\</td>\`).join("");
+    return \`\<tr>${cells}\<td class="action-col">${s ? \`\<button class="icon-btn edit-btn" onclick="openBibitModal(${idx})">✏️ Edit\</button>\<button class="icon-btn delete-btn" onclick="deleteBibit(${idx})">🗑️ Hapus\</button>\` : "-"}\</td>\</tr>\`;
+  }).join("") : \`\<tr>\<td colspan="${headers.length + 1}" style="text-align\:center;padding:28px;color:#7b8981">Tidak ada data untuk filter yang dipilih.\</td>\</tr>\`;
   
-  renderBibitChart(
-  all.filter(r =>
-    (y === "all" || String(bibitValue(r, 5)) === y) &&
-    (p === "all" || String(bibitValue(r, 1)) === p)
-  ),
-  y,
-  p
-);
+  renderBibitChart(rows, y, p);
 }
 
 function formatBibitCell(v) {
   if (v === null || v === undefined || v === "") return "";
-  if (typeof v === "number" && Math.abs(v) <= 1 && v !== 0) return `${(v * 100).toFixed(2).replace(/\.00$/, '')}%`;
+  if (typeof v === "number" && Math.abs(v) <= 1 && v !== 0) return \`${(v \* 100).toFixed(2).replace(/\\.00$/, '')}%\`;
   return v;
 }
 
 function percentFromRaw(v) {
   if (v === null || v === undefined || v === "") return null;
-  if (typeof v === 'number') return Math.abs(v) <= 1 ? v * 100 : v;
+  if (typeof v === 'number') return Math.abs(v) <= 1 ? v \* 100 : v;
   let s = String(v).trim().replace(/%/g, "").replace(/,/g, ".");
   let n = Number(s);
   if (!Number.isFinite(n)) return null;
-  return Math.abs(n) <= 1 ? n * 100 : n;
+  return Math.abs(n) <= 1 ? n \* 100 : n;
 }
 
 function latestBibitWeeks(rows, targetYear, pgName) {
@@ -684,7 +621,7 @@ function averageifsBibit(rows, pg, week, year, colIndex) {
 
 function buildBibitChartForPG(rows, pgName, targetYear) {
   const weeks = latestBibitWeeks(rows, targetYear, pgName);
-  if (!weeks.length) return `<div class="bibit-single-chart"><div class="bibit-single-chart-title">${esc(pgName)}</div><div class="bibit-chart-empty">Belum ada data untuk 5 Week terbaru.</div></div>`;
+  if (!weeks.length) return \`\<div class="bibit-single-chart">\<div class="bibit-single-chart-title">${esc(pgName)}\</div>\<div class="bibit-chart-empty">Belum ada data untuk 5 Week terbaru.\</div>\</div>\`;
   
   const cats = [
     { col: 20, label: "<20 (K)", cls: "cat-k" },
@@ -692,12 +629,12 @@ function buildBibitChartForPG(rows, pgName, targetYear) {
     { col: 22, label: "26 s/d 35 (B)", cls: "cat-b" }
   ];
   
-  const bars = weeks.map(w => `<div class="bibit-week-group"><div class="bibit-week-bars">${cats.map(c => {
+  const bars = weeks.map(w => \`\<div class="bibit-week-group">\<div class="bibit-week-bars">${cats.map(c => {
     const v = averageifsBibit(rows, pgName, w, targetYear, c.col);
-    return v === null ? `<div class="bibit-bar-slot"></div>` : `<div class="bibit-bar-slot"><div class="bibit-value">${v.toFixed(1)}%</div><div class="bibit-bar ${c.cls}" style="height:${Math.max(0, Math.min(100, v))}%"></div></div>`;
-  }).join("")}</div><div class="bibit-week-label">W${w}</div></div>`).join("");
+    return v === null ? \`\<div class="bibit-bar-slot">\</div>\` : \`\<div class="bibit-bar-slot">\<div class="bibit-value">${v.toFixed(1)}%\</div>\<div class="bibit-bar ${c.cls}" style="height:${Math.max(0, Math.min(100, v))}%">\</div>\</div>\`;
+  }).join("")}\</div>\<div class="bibit-week-label">W${w}\</div>\</div>\`).join("");
   
-  return `<div class="bibit-single-chart"><div class="bibit-single-chart-title">${esc(pgName)}</div><div class="bibit-chart-plot"><div class="bibit-yaxis"><span>100%</span><span>75%</span><span>50%</span><span>25%</span><span>0%</span></div><div class="bibit-plot-area"><div class="bibit-gridline g100"></div><div class="bibit-gridline g75"></div><div class="bibit-gridline g50"></div><div class="bibit-gridline g25"></div><div class="bibit-gridline g0"></div><div class="bibit-week-groups">${bars}</div></div></div><div class="bibit-chart-legend"><span><i class="legend-dot cat-k"></i>&lt;20 (K)</span><span><i class="legend-dot cat-s"></i>20 s/d 25 (S)</span><span><i class="legend-dot cat-b"></i>26 s/d 35 (B)</span></div></div>`;
+  return \`\<div class="bibit-single-chart">\<div class="bibit-single-chart-title">${esc(pgName)}\</div>\<div class="bibit-chart-plot">\<div class="bibit-yaxis">\<span>100%\</span>\<span>75%\</span>\<span>50%\</span>\<span>25%\</span>\<span>0%\</span>\</div>\<div class="bibit-plot-area">\<div class="bibit-gridline g100">\</div>\<div class="bibit-gridline g75">\</div>\<div class="bibit-gridline g50">\</div>\<div class="bibit-gridline g25">\</div>\<div class="bibit-gridline g0">\</div>\<div class="bibit-week-groups">${bars}\</div>\</div>\</div>\<div class="bibit-chart-legend">\<span>\<i class="legend-dot cat-k">\</i>&lt;20 (K)\</span>\<span>\<i class="legend-dot cat-s">\</i>20 s/d 25 (S)\</span>\<span>\<i class="legend-dot cat-b">\</i>26 s/d 35 (B)\</span>\</div>\</div>\`;
 }
 
 function renderBibitChart(rows, year, pg) {
@@ -711,17 +648,17 @@ function renderBibitChart(rows, year, pg) {
     const ys = rows.map(r => Number(bibitValue(r, 5))).filter(Number.isFinite);
     chartYear = ys.length ? String(Math.max(...ys)) : "all";
   }
-  if (info) info.textContent = `${chartYear === "all" ? "Semua Tahun" : chartYear} • ${pg === "all" ? "Semua PG" : pg} • 5 Week Terbaru`;
+  if (info) info.textContent = \`${chartYear === "all" ? "Semua Tahun" : chartYear} • ${pg === "all" ? "Semua PG" : pg} • 5 Week Terbaru\`;
   
   const pgs = pg === "all" ? ["PG1", "PG2", "PG3", "PG4"] : [pg];
   const usable = pgs.filter(x => rows.some(r => String(bibitValue(r, 1)) === x && String(bibitValue(r, 5)) === String(chartYear)));
   
-  area.innerHTML = usable.length ? usable.map(x => buildBibitChartForPG(rows, x, chartYear)).join("") : `<div class="chart-empty">Belum ada data untuk filter yang dipilih.</div>`;
-  if (legend) legend.innerHTML = '<span>📌 Perhitungan mengikuti AVERAGEIFS pada Excel: PG + Week + Tahun.</span><span>📊 Grafik hanya mengambil 5 Week terbaru.</span>';
+  area.innerHTML = usable.length ? usable.map(x => buildBibitChartForPG(rows, x, chartYear)).join("") : \`\<div class="chart-empty">Belum ada data untuk filter yang dipilih.\</div>\`;
+  if (legend) legend.innerHTML = '\<span>📌 Perhitungan mengikuti AVERAGEIFS pada Excel: PG + Week + Tahun.\</span>\<span>📊 Grafik hanya mengambil 5 Week terbaru.\</span>';
 }
 
-window.openBibitModal = openBibitModal;
-window.deleteBibit = function(i) {
+window\.openBibitModal = openBibitModal;
+window\.deleteBibit = function(i) {
   if (!staff()) return openLogin();
   if (!confirm("Hapus data bibit ini?")) return;
   const d = getBibit();
@@ -742,29 +679,29 @@ function importBibit(file) {
     try {
       const wb = XLSX.read(e.target.result, { type: "array", cellDates: false });
       const sheetName = wb.SheetNames.includes("Rekap per lokasi") ? "Rekap per lokasi" : wb.SheetNames[0];
-      if (sheetName !== "Rekap per lokasi") alert(`Sheet "Rekap per lokasi" tidak ditemukan. Website akan membaca sheet pertama: ${sheetName}.`);
+      if (sheetName !== "Rekap per lokasi") alert(\`Sheet "Rekap per lokasi" tidak ditemukan. Website akan membaca sheet pertama: ${sheetName}.\`);
       
       const ws = wb.Sheets[sheetName];
       const raw = XLSX.utils.sheet_to_json(ws, { header: 1, defval: "", raw: true });
-      if (raw.length < 6) {
+      if (raw\.length < 6) {
         alert("Sheet Rekap per lokasi belum berisi data yang cukup.");
         return;
       }
       
-      const maxCols = Math.max(...raw.slice(3).map(r => r.length));
+      const maxCols = Math.max(...raw\.slice(3).map(r => r.length));
       const headers = [];
       let lastGroup = "";
       for (let c = 3; c < maxCols; c++) {
         const group = String(raw[3]?.[c] ?? "").trim();
         const sub = String(raw[4]?.[c] ?? "").trim();
         if (group) lastGroup = group;
-        const label = sub ? (group && group !== sub ? `${lastGroup} - ${sub}` : sub) : (group || `Kolom ${c + 1}`);
+        const label = sub ? (group && group !== sub ? \`${lastGroup} - ${sub}\` : sub) : (group || \`Kolom ${c + 1}\`);
         headers.push(label.replace(/\n/g, " ").replace(/\s+/g, " ").trim());
       }
       
-      const rows = raw.slice(5).filter(r => r.some(v => String(v ?? "").trim() !== "") && String(r[4] ?? "").trim() !== "").map((r, i) => ({
+      const rows = raw\.slice(5).filter(r => r.some(v => String(v ?? "").trim() !== "") && String(r[4] ?? "").trim() !== "").map((r, i) => ({
         id: Date.now() + i,
-        values: Array.from({ length: maxCols - 3 }, (_, j) => r[j + 3] ?? "")
+        values: Array.from({ length: maxCols - 3 }, (\_, j) => r[j + 3] ?? "")
       }));
       
       if (!rows.length) {
@@ -778,8 +715,8 @@ dashboard();
 
 syncBibitToSupabase(rows).then(ok=>{
   if(ok){
-    alert(`${rows.length} baris dari sheet Rekap per lokasi berhasil di-upload dan disimpan online.
-Grafik Keseragaman dihitung dari kolom X, Y, Z berdasarkan PG + Week + Tahun.`);
+    alert(\`${rows.length} baris dari sheet Rekap per lokasi berhasil di-upload dan disimpan online.
+Grafik Keseragaman dihitung dari kolom X, Y, Z berdasarkan PG + Week + Tahun.\`);
   }
 });
     } catch (err) {
@@ -797,38 +734,16 @@ function setupBibit(){
  loadBibitFromSupabase();
   
   const yf = document.getElementById("yearFilter");
-const rf = document.getElementById("regionFilter");
-const wf = document.getElementById("weekFilter");
-
-if (yf) {
-  yf.onchange = () => {
-    updateWeekFilter();
-    renderBibit();
-  };
-}
-
-if (rf) {
-  rf.onchange = () => {
-    updateWeekFilter();
-    renderBibit();
-  };
-}
-
-if (wf) {
-  wf.onchange = renderBibit;
-}
-
-updateWeekFilter();
+  const rf = document.getElementById("regionFilter");
+  if (yf) yf.onchange = renderBibit;
+  if (rf) rf.onchange = renderBibit;
   
   const resetBtn = document.getElementById("resetFilters");
   if (resetBtn) resetBtn.onclick = () => {
-  if (yf) yf.value = "all";
-  if (rf) rf.value = "all";
-  if (wf) wf.value = "all";
-
-  updateWeekFilter();
-  renderBibit();
-};
+    if (yf) yf.value = "all";
+    if (rf) rf.value = "all";
+    renderBibit();
+  };
   
   const addBtn = document.getElementById("addDataBtn");
   if (addBtn) addBtn.onclick = () => openBibitModal();
@@ -879,7 +794,7 @@ function getAllLatestYears() {
   const years = [];
   ["agronomi", "bud", "propping", "buah"].forEach(k => {
     try {
-      const s = localStorage.getItem(DATA_KEY + "_" + k);
+      const s = localStorage.getItem(DATA_KEY + "\_" + k);
       if (s) JSON.parse(s).forEach(r => years.push(Number(r[1]) || 0));
     } catch (e) {}
   });
@@ -905,13 +820,13 @@ function dashboard() {
   const chart = document.getElementById("bibitChart");
   if (chart) {
     if (!b.length) {
-      chart.innerHTML = '<div class="chart-empty">Belum ada data Bibit pada tahun terbaru.</div>';
+      chart.innerHTML = '\<div class="chart-empty">Belum ada data Bibit pada tahun terbaru.\</div>';
     } else {
       const pgNames = ["PG1", "PG2", "PG3", "PG4"];
       const available = pgNames.filter(pg => b.some(r => String(bibitValue(r, 1)) === pg));
       chart.innerHTML = available.length
         ? available.map(pg => buildBibitChartForPG(b, pg, String(y))).join("")
-        : '<div class="chart-empty">Belum ada data keseragaman untuk PG1–PG4 pada tahun terbaru.</div>';
+        : '\<div class="chart-empty">Belum ada data keseragaman untuk PG1–PG4 pada tahun terbaru.\</div>';
     }
   }
 
@@ -928,18 +843,18 @@ function dashboard() {
 
   const summary = document.getElementById("latestSummary");
   if (summary) {
-    summary.innerHTML = cats.map(c => `
-      <a class="summary-row" href="${basePrefix}${c[0]}.html">
-        <span>${c[1]} ${c[2]}</span>
-        <strong>${c[3]} data</strong>
-      </a>
-    `).join("");
+    summary.innerHTML = cats.map(c => \`
+      \<a class="summary-row" href="${basePrefix}${c[0]}.html">
+        \<span>${c[1]} ${c[2]}\</span>
+        \<strong>${c[3]} data\</strong>
+      \</a>
+    \`).join("");
   }
 }
 
 function latestGenericCount(k, y) {
   try {
-    const s = localStorage.getItem(DATA_KEY + "_" + k);
+    const s = localStorage.getItem(DATA_KEY + "\_" + k);
     if (s) return JSON.parse(s).filter(r => Number(r[1]) === y).length;
   } catch (e) {}
   return 0;
