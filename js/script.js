@@ -200,13 +200,13 @@ async function syncBibitToSupabase(rows){
 }
 
 async function loadBibitFromSupabase(){
-  if(typeof supabaseClient==="undefined"){
+  if(!qcSupabase){
     console.warn("Supabase belum terhubung.");
     return;
   }
 
   try{
-    const res=await supabaseClient
+    const res = await qcSupabase
       .from("bibit_data")
       .select("row_data,headers")
       .order("id",{ascending:true});
@@ -218,9 +218,9 @@ async function loadBibitFromSupabase(){
       return;
     }
 
-    const rows=res.data.map(x=>normalizeBibitRow(x.row_data));
+    const rows = res.data.map(x => normalizeBibitRow(x.row_data));
 
-    const headers=res.data[0].headers;
+    const headers = res.data[0].headers;
 
     if(Array.isArray(headers) && headers.length){
       saveBibitHeaders(headers);
@@ -237,7 +237,6 @@ async function loadBibitFromSupabase(){
     console.error("Gagal mengambil data dari Supabase:",err);
   }
 }
-
 function getBibitHeaders() {
   try {
     const h = JSON.parse(localStorage.getItem(BIBIT_HEADERS_KEY) || "null");
