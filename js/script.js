@@ -727,6 +727,118 @@ Grafik Keseragaman dihitung dari kolom X, Y, Z berdasarkan PG + Week + Tahun.\`)
   reader.readAsArrayBuffer(file);
 }
 
+async function importPropping(file) {
+  try {
+    const data = await file.arrayBuffer();
+
+    const workbook = XLSX.read(data, {
+      type: "array"
+    });
+
+    const sheet = workbook.Sheets["PROPING"];
+
+    if (!sheet) {
+      alert("Sheet PROPING tidak ditemukan di file Excel.");
+      return;
+    }
+
+    const rows = XLSX.utils.sheet_to_json(sheet, {
+      header: 1,
+      defval: ""
+    });
+
+    if (!rows.length) {
+      alert("Data PROPING kosong.");
+      return;
+    }
+
+    localStorage.setItem(
+      "qcBananaProppingData",
+      JSON.stringify(rows)
+    );
+
+    console.log(
+      "Data PROPING berhasil dibaca:",
+      rows.length,
+      "baris"
+    );
+
+    alert("Data PROPING berhasil dibaca dari Excel.");
+
+  } catch (error) {
+    console.error("Gagal membaca PROPING:", error);
+
+    alert(
+      "Gagal membaca data PROPING. Cek Console."
+    );
+  }
+}
+function parseProppingPercent(value) {
+  if (value === null || value === undefined || value === "") {
+    return null;
+  }
+
+  if (typeof value === "number") {
+    return value <= 1 ? value * 100 : value;
+  }
+
+  const text = String(value).trim().replace(",", ".");
+
+  if (text.endsWith("%")) {
+    const number = parseFloat(text.replace("%", ""));
+    return Number.isFinite(number) ? number : null;
+  }
+
+  const number = parseFloat(text);
+
+  if (!Number.isFinite(number)) {
+    return null;
+  }
+
+  return number <= 1 ? number * 100 : number;
+}
+
+
+function averagePropping(rows, filterColumn, filterValue, periodColumn, periodValue) {
+  const values = rows
+    .filter(row => {
+      const filterMatch =
+        String(row[filterColumn] ?? "").trim() ===
+        String(filterValue ?? "").trim();
+
+      const periodMatch =
+        String(row[periodColumn] ?? "").trim() ===
+        String(periodValue ?? "").trim();
+
+      return filterMatch && periodMatch;
+    })
+    .map(row => parseProppingPercent(row[10]))
+    .filter(value => value !== null);
+
+  if (!values.length) {
+    return null;
+  }
+
+  return values.reduce((sum, value) => sum + value, 0) / values.length;
+}
+
+
+function averageProppingAll(rows, periodColumn, periodValue) {
+  const values = rows
+    .filter(row =>
+      String(row[periodColumn] ?? "").trim() ===
+      String(periodValue ?? "").trim()
+    )
+    .map(row => parseProppingPercent(row[10]))
+    .filter(value => value !== null);
+
+  if (!values.length) {
+    return null;
+  }
+
+  return values.reduce((sum, value) => sum + value, 0) / values.length;
+}
+
 function setupBibit(){
  if(!document.getElementById("bibitTableBody"))return;
 
