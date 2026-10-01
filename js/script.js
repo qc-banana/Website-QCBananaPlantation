@@ -568,15 +568,71 @@ function renderBibitTableHead() {
 function bibitRowsFiltered() {
   const y = document.getElementById("yearFilter")?.value || "all";
   const p = document.getElementById("regionFilter")?.value || "all";
+  const w = document.getElementById("weekFilter")?.value || "all";
+
   const all = getBibit();
-  return { y, p, all, rows: all.filter(r => (y === "all" || String(bibitValue(r, 5)) === y) && (p === "all" || String(bibitValue(r, 1)) === p)) };
+
+  const rows = all.filter(r => {
+    const rowYear = String(bibitValue(r, 5));
+    const rowPG = String(bibitValue(r, 1));
+    const rowWeek = String(bibitValue(r, 3));
+
+    return (
+      (y === "all" || rowYear === y) &&
+      (p === "all" || rowPG === p) &&
+      (w === "all" || rowWeek === w)
+    );
+  });
+
+  return { y, p, w, all, rows };
 }
+function updateWeekFilter() {
+  const weekFilter = document.getElementById("weekFilter");
+  if (!weekFilter) return;
+
+  const y = document.getElementById("yearFilter")?.value || "all";
+  const p = document.getElementById("regionFilter")?.value || "all";
+
+  const all = getBibit();
+
+  const weeks = [
+    ...new Set(
+      all
+        .filter(r => {
+          const rowYear = String(bibitValue(r, 5));
+          const rowPG = String(bibitValue(r, 1));
+
+          return (
+            (y === "all" || rowYear === y) &&
+            (p === "all" || rowPG === p)
+          );
+        })
+        .map(r => Number(bibitValue(r, 3)))
+        .filter(Number.isFinite)
+    )
+  ].sort((a, b) => a - b);
+
+  const currentWeek = weekFilter.value;
+
+  weekFilter.innerHTML =
+    `<option value="all">Semua Week</option>` +
+    weeks
+      .map(w => `<option value="${w}">Week ${w}</option>`)
+      .join("");
+
+  if (weeks.includes(Number(currentWeek))) {
+    weekFilter.value = currentWeek;
+  } else {
+    weekFilter.value = "all";
+  }
+}
+
 
 function renderBibit() {
   const body = document.getElementById("bibitTableBody");
   if (!body) return;
   renderBibitTableHead();
-  const { y, p, all, rows } = bibitRowsFiltered();
+  const { y, p, w, all, rows } = bibitRowsFiltered();
   const s = staff();
   
   const recCount = document.getElementById("recordCount");
@@ -589,7 +645,14 @@ function renderBibit() {
     return `<tr>${cells}<td class="action-col">${s ? `<button class="icon-btn edit-btn" onclick="openBibitModal(${idx})">✏️ Edit</button><button class="icon-btn delete-btn" onclick="deleteBibit(${idx})">🗑️ Hapus</button>` : "-"}</td></tr>`;
   }).join("") : `<tr><td colspan="${headers.length + 1}" style="text-align:center;padding:28px;color:#7b8981">Tidak ada data untuk filter yang dipilih.</td></tr>`;
   
-  renderBibitChart(rows, y, p);
+  renderBibitChart(
+  all.filter(r =>
+    (y === "all" || String(bibitValue(r, 5)) === y) &&
+    (p === "all" || String(bibitValue(r, 1)) === p)
+  ),
+  y,
+  p
+);
 }
 
 function formatBibitCell(v) {
@@ -734,16 +797,38 @@ function setupBibit(){
  loadBibitFromSupabase();
   
   const yf = document.getElementById("yearFilter");
-  const rf = document.getElementById("regionFilter");
-  if (yf) yf.onchange = renderBibit;
-  if (rf) rf.onchange = renderBibit;
+const rf = document.getElementById("regionFilter");
+const wf = document.getElementById("weekFilter");
+
+if (yf) {
+  yf.onchange = () => {
+    updateWeekFilter();
+    renderBibit();
+  };
+}
+
+if (rf) {
+  rf.onchange = () => {
+    updateWeekFilter();
+    renderBibit();
+  };
+}
+
+if (wf) {
+  wf.onchange = renderBibit;
+}
+
+updateWeekFilter();
   
   const resetBtn = document.getElementById("resetFilters");
   if (resetBtn) resetBtn.onclick = () => {
-    if (yf) yf.value = "all";
-    if (rf) rf.value = "all";
-    renderBibit();
-  };
+  if (yf) yf.value = "all";
+  if (rf) rf.value = "all";
+  if (wf) wf.value = "all";
+
+  updateWeekFilter();
+  renderBibit();
+};
   
   const addBtn = document.getElementById("addDataBtn");
   if (addBtn) addBtn.onclick = () => openBibitModal();
