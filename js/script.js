@@ -198,6 +198,7 @@ async function syncBibitToSupabase(rows){
     return false;
   }
 }
+
 async function loadBibitFromSupabase(){
   if(typeof supabaseClient==="undefined"){
     console.warn("Supabase belum terhubung.");
