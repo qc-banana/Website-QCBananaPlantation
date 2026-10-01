@@ -210,42 +210,79 @@ async function syncBibitToSupabase(rows) {
   }
 }
 
-async function loadBibitFromSupabase(){
-  if(typeof supabaseClient==="undefined"){
+async function loadBibitFromSupabase() {
+  if (!qcSupabase) {
     console.warn("Supabase belum terhubung.");
-    return;
+    return false;
   }
 
-  try{
-    const res=await supabaseClient
-      .from("bibit_data")
-      .select("row_data,headers")
-      .order("id",{ascending:true});
+  try {
+    const pageSize = 1000;
+    let from = 0;
+    let allData = [];
 
-    if(res.error) throw res.error;
+    // Ambil semua data dari Supabase
+    while (true) {
+      const { data, error } = await qcSupabase
+        .from("bibit_data")
+        .select("id,row_data,headers")
+        .order("id", { ascending: true })
+        .range(from, from + pageSize - 1);
 
-    if(!res.data || !res.data.length){
+      if (error) throw error;
+
+      if (!data || !data.length) {
+        break;
+      }
+
+      allData.push(...data);
+
+      if (data.length < pageSize) {
+        break;
+      }
+
+      from += pageSize;
+    }
+
+    // Kalau database benar-benar kosong
+    if (!allData.length) {
       console.log("Database Supabase masih kosong.");
-      return;
+      return false;
     }
 
-    const rows=res.data.map(x=>normalizeBibitRow(x.row_data));
+    // Ambil headers dari data pertama yang memilikinya
+    const headerRow = allData.find(
+      row => Array.isArray(row.headers) && row.headers.length
+    );
 
-    const headers=res.data[0].headers;
-
-    if(Array.isArray(headers) && headers.length){
-      saveBibitHeaders(headers);
+    if (headerRow) {
+      saveBibitHeaders(headerRow.headers);
     }
 
+    // Ubah data Supabase menjadi format yang dipakai website
+    const rows = allData.map(row => ({
+      id: row.id,
+      values: Array.isArray(row.row_data)
+        ? row.row_data
+        : []
+    }));
+
+    // Simpan hasil dari Supabase ke browser
     saveBibit(rows);
 
-    console.log("Data Bibit berhasil dimuat dari Supabase.");
+    console.log(
+      `Data Bibit berhasil dimuat dari Supabase: ${rows.length} baris.`
+    );
 
-    renderBibit();
-    dashboard();
+    return true;
 
-  }catch(err){
-    console.error("Gagal mengambil data dari Supabase:",err);
+  } catch (err) {
+    console.error(
+      "Gagal mengambil data dari Supabase:",
+      err
+    );
+
+    return false;
   }
 }
 
