@@ -154,47 +154,58 @@ function getBibit() {
 function saveBibit(d) {
   localStorage.setItem(BIBIT_KEY, JSON.stringify(d.map(normalizeBibitRow)));
 }
-async function syncBibitToSupabase(rows){
-  if(typeof supabaseClient==="undefined"){
+async function syncBibitToSupabase(rows) {
+  if (!qcSupabase) {
     console.warn("Supabase belum terhubung.");
     return false;
   }
 
-  try{
-    // Hapus data Bibit lama di database
-    const del=await supabaseClient
+  try {
+    // Hapus data Bibit lama di Supabase
+    const { error: deleteError } = await qcSupabase
       .from("bibit_data")
       .delete()
-      .neq("id",0);
+      .neq("id", 0);
 
-    if(del.error) throw del.error;
+    if (deleteError) throw deleteError;
 
-    const headers=getBibitHeaders();
+    if (!rows || !rows.length) {
+      console.log("Tidak ada data Bibit untuk dikirim.");
+      return true;
+    }
 
-    // Simpan data baru ke database
-    const payload=rows.map(r=>({
-      row_data:normalizeBibitRow(r),
-      headers:headers
+    const headers = getBibitHeaders();
+
+    // Data yang dikirim ke Supabase
+    const payload = rows.map(row => ({
+      row_data: row.values || [],
+      headers: headers
     }));
 
-    const chunkSize=500;
+    // Kirim bertahap supaya aman kalau datanya banyak
+    const chunkSize = 500;
 
-    for(let i=0;i<payload.length;i+=chunkSize){
-      const chunk=payload.slice(i,i+chunkSize);
+    for (let i = 0; i < payload.length; i += chunkSize) {
+      const chunk = payload.slice(i, i + chunkSize);
 
-      const ins=await supabaseClient
+      const { error } = await qcSupabase
         .from("bibit_data")
         .insert(chunk);
 
-      if(ins.error) throw ins.error;
+      if (error) throw error;
     }
 
     console.log("Data Bibit berhasil disimpan ke Supabase.");
     return true;
 
-  }catch(err){
-    console.error("Gagal sinkronisasi Supabase:",err);
-    alert("Data tersimpan di browser, tetapi belum berhasil dikirim ke database online.");
+  } catch (err) {
+    console.error("Gagal sinkronisasi Supabase:", err);
+
+    alert(
+      "Data Excel belum berhasil dikirim ke database online. " +
+      "Cek Console untuk melihat detail error."
+    );
+
     return false;
   }
 }
