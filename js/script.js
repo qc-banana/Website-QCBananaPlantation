@@ -752,27 +752,74 @@ async function importPropping(file) {
       return;
     }
 
-    localStorage.setItem(
-      "qcBananaProppingData",
-      JSON.stringify(rows)
+    // Baris pertama dianggap sebagai header Excel
+    const headers = rows[0];
+
+    // Data tanpa header
+    const dataRows = rows.slice(1);
+
+    if (!qcSupabase) {
+      alert("Supabase belum terhubung.");
+      return;
+    }
+
+    // Hapus data Propping lama
+    const { error: deleteError } = await qcSupabase
+      .from("propping_data")
+      .delete()
+      .neq("id", 0);
+
+    if (deleteError) {
+      console.error("Gagal menghapus data lama:", deleteError);
+      alert("Gagal menghapus data Propping lama.");
+      return;
+    }
+
+    // Siapkan data untuk Supabase
+    const records = dataRows
+      .filter(row =>
+        row.some(value => String(value ?? "").trim() !== "")
+      )
+      .map(row => ({
+        row_data: row,
+        headers: headers
+      }));
+
+    if (!records.length) {
+      alert("Tidak ada data Propping yang bisa diupload.");
+      return;
+    }
+
+    // Upload ke Supabase
+    const { error: insertError } = await qcSupabase
+      .from("propping_data")
+      .insert(records);
+
+    if (insertError) {
+      console.error("Gagal upload Propping:", insertError);
+      alert("Gagal menyimpan data Propping ke Supabase.");
+      return;
+    }
+
+    alert(
+      `Berhasil upload ${records.length} baris data Propping ke Supabase.`
     );
 
     console.log(
-      "Data PROPING berhasil dibaca:",
-      rows.length,
+      "Data Propping berhasil disimpan:",
+      records.length,
       "baris"
     );
 
-    alert("Data PROPING berhasil dibaca dari Excel.");
-
   } catch (error) {
-    console.error("Gagal membaca PROPING:", error);
+    console.error("Gagal membaca/upload PROPING:", error);
 
     alert(
-      "Gagal membaca data PROPING. Cek Console."
+      "Gagal membaca atau mengupload data PROPING. Cek Console."
     );
   }
 }
+
 function parseProppingPercent(value) {
   if (value === null || value === undefined || value === "") {
     return null;
