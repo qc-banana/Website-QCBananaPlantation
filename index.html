@@ -87,15 +87,53 @@
           <div class="chart-empty">Belum ada data bibit.</div>
         </div>
       </div>
+    <!-- ============================= -->
+    <!-- GRAFIK PROPPING DASHBOARD -->
+    <!-- ============================= -->
 
-      <div class="dashboard-summary panel">
-        <div class="panel-header">
-          <span class="eyebrow">STATUS DATA</span>
-          <h2>Ringkasan 5 Data QC</h2>
+    <section class="dashboard-propping-section panel">
+
+      <div class="panel-header chart-header">
+        <div>
+          <span class="eyebrow">PENGAMATAN PROPPING</span>
+          <h2>TerProping</h2>
+          <p>
+            Menampilkan 4 grafik Propping berdasarkan
+            5 bulan dan 5 week terbaru pada tahun terbaru.
+          </p>
         </div>
-        <div id="latestSummary" class="latest-summary"></div>
+
+        <a href="pages/propping.html" class="mini-link">
+          Kelola →
+        </a>
       </div>
+
+      <div id="dashboardProppingCharts" class="dashboard-propping-grid">
+
+        <div class="dashboard-propping-chart">
+          <h3>TerProping PG</h3>
+          <canvas id="dashboardProppingMonthlyPG"></canvas>
+        </div>
+
+        <div class="dashboard-propping-chart">
+          <h3>Weekly TerProping PG</h3>
+          <canvas id="dashboardProppingWeeklyPG"></canvas>
+        </div>
+
+        <div class="dashboard-propping-chart">
+          <h3>TerProping Wilayah</h3>
+          <canvas id="dashboardProppingMonthlyWilayah"></canvas>
+        </div>
+
+        <div class="dashboard-propping-chart">
+          <h3>Weekly TerProping Wilayah</h3>
+          <canvas id="dashboardProppingWeeklyWilayah"></canvas>
+        </div>
+
+      </div>
+
     </section>
+
 
     <section class="section-header">
       <div>
@@ -199,6 +237,7 @@
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script src="js/script.js"></script>
 </body>
 </html>
