@@ -155,34 +155,39 @@ function saveBibit(d) {
   localStorage.setItem(BIBIT_KEY, JSON.stringify(d.map(normalizeBibitRow)));
 }
 async function syncBibitToSupabase(rows){
-  if(typeof supabaseClient==="undefined"){
+  if(!qcSupabase){
     console.warn("Supabase belum terhubung.");
     return false;
   }
 
   try{
-    // Hapus data Bibit lama di database
-    const del=await supabaseClient
+    // Hapus data lama
+    const del = await qcSupabase
       .from("bibit_data")
       .delete()
-      .neq("id",0);
+      .neq("id", 0);
 
     if(del.error) throw del.error;
 
-    const headers=getBibitHeaders();
+    // Ambil header Excel
+    const headers = getBibitHeaders();
 
-    // Simpan data baru ke database
-    const payload=rows.map(r=>({
-      row_data:normalizeBibitRow(r),
-      headers:headers
-    }));
+    // Simpan row_data sebagai ARRAY values
+    const payload = rows.map(r => {
+      const normalized = normalizeBibitRow(r);
 
-    const chunkSize=500;
+      return {
+        row_data: normalized.values || [],
+        headers: headers
+      };
+    });
 
-    for(let i=0;i<payload.length;i+=chunkSize){
-      const chunk=payload.slice(i,i+chunkSize);
+    const chunkSize = 500;
 
-      const ins=await supabaseClient
+    for(let i = 0; i < payload.length; i += chunkSize){
+      const chunk = payload.slice(i, i + chunkSize);
+
+      const ins = await qcSupabase
         .from("bibit_data")
         .insert(chunk);
 
@@ -193,23 +198,23 @@ async function syncBibitToSupabase(rows){
     return true;
 
   }catch(err){
-    console.error("Gagal sinkronisasi Supabase:",err);
+    console.error("Gagal sinkronisasi Supabase:", err);
     alert("Data tersimpan di browser, tetapi belum berhasil dikirim ke database online.");
     return false;
   }
 }
 
 async function loadBibitFromSupabase(){
-  if(typeof supabaseClient==="undefined"){
+  if(!qcSupabase){
     console.warn("Supabase belum terhubung.");
     return;
   }
 
   try{
-    const res=await supabaseClient
+    const res = await qcSupabase
       .from("bibit_data")
-      .select("row_data,headers")
-      .order("id",{ascending:true});
+      .select("id,row_data,headers")
+      .order("id", { ascending: true });
 
     if(res.error) throw res.error;
 
@@ -218,9 +223,14 @@ async function loadBibitFromSupabase(){
       return;
     }
 
-    const rows=res.data.map(x=>normalizeBibitRow(x.row_data));
+    const rows = res.data.map(x => ({
+      id: x.id,
+      values: Array.isArray(x.row_data)
+        ? x.row_data
+        : (x.row_data?.values || [])
+    }));
 
-    const headers=res.data[0].headers;
+    const headers = res.data[0].headers;
 
     if(Array.isArray(headers) && headers.length){
       saveBibitHeaders(headers);
@@ -234,7 +244,7 @@ async function loadBibitFromSupabase(){
     dashboard();
 
   }catch(err){
-    console.error("Gagal mengambil data dari Supabase:",err);
+    console.error("Gagal mengambil data dari Supabase:", err);
   }
 }
 
@@ -624,10 +634,14 @@ function renderBibitChart(rows, year, pg) {
   if (!area) return;
   
   let chartYear = year;
-  if (chartYear === "all") {
-    const ys = rows.map(r => Number(bibitValue(r, 5))).filter(Number.isFinite);
-    chartYear = ys.length ? String(Math.max(...ys)) : "all";
-  }
+
+if (chartYear === "all") {
+  const ys = rows
+    .map(r => Number(bibitValue(r, 5)))
+    .filter(v => Number.isFinite(v) && v > 0);
+
+  chartYear = ys.length ? String(Math.max(...ys)) : "all";
+}
   if (info) info.textContent = `${chartYear === "all" ? "Semua Tahun" : chartYear} • ${pg === "all" ? "Semua PG" : pg} • 5 Week Terbaru`;
   
   const pgs = pg === "all" ? ["PG1", "PG2", "PG3", "PG4"] : [pg];
