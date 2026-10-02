@@ -3,182 +3,770 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width,initial-scale=1.0">
-  <title>Propping - QC Banana</title>
+
+  <title>Pengamatan Propping - QC Banana</title>
+
   <link rel="stylesheet" href="../css/style.css">
+
+  <!-- Excel -->
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+
+  <!-- Supabase -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+  <!-- Chart -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
+
 <body>
+
+  <!-- ================= SIDEBAR ================= -->
+
   <div id="sidebarOverlay" class="sidebar-overlay"></div>
 
   <aside id="sidebar" class="sidebar">
+
     <div class="brand">
       <div class="brand-icon">🍌</div>
+
       <div>
         <strong>QC Banana Reformasi</strong>
         <span>Quality Control</span>
       </div>
     </div>
+
     <nav class="sidebar-nav">
-      <a href="../index.html" class="nav-link">🏠 <span>Dashboard</span></a>
-      <div class="nav-section-title">📊 DATA QC</div>
-      <a href="bibit.html" class="nav-link">🌱 <span>Pengamatan Bibit</span></a>
-      <a href="agronomi.html" class="nav-link">🌿 <span>Agronomi</span></a>
-      <a href="bud-injection.html" class="nav-link">💉 <span>Bud Injection</span></a>
-      <a href="propping.html" class="nav-link active">🌴 <span>Propping</span></a>
-      <a href="buah-10mg.html" class="nav-link">🍌 <span>Buah 10 MG Shooting</span></a>
+
+      <a href="../index.html" class="nav-link">
+        🏠 <span>Dashboard</span>
+      </a>
+
+      <div class="nav-section-title">
+        📊 DATA QC
+      </div>
+
+      <a href="bibit.html" class="nav-link">
+        🌱 <span>Pengamatan Bibit</span>
+      </a>
+
+      <a href="agronomi.html" class="nav-link">
+        🌿 <span>Agronomi</span>
+      </a>
+
+      <a href="bud-injection.html" class="nav-link">
+        💉 <span>Bud Injection</span>
+      </a>
+
+      <a href="propping.html" class="nav-link active">
+        🌴 <span>Propping</span>
+      </a>
+
+      <a href="buah-10mg.html" class="nav-link">
+        🍌 <span>Buah 10 MG Shooting</span>
+      </a>
+
     </nav>
+
     <div class="sidebar-bottom">
+
       <div id="sidebarUserStatus" class="user-status">
         <span>👤</span>
         <span>Pengunjung</span>
       </div>
-      <button id="sidebarLoginBtn" class="btn btn-primary btn-full">🔐 Login Petugas</button>
-      <button id="sidebarLogoutBtn" class="btn btn-danger btn-full hidden">↪ Logout</button>
+
+      <button
+        id="sidebarLoginBtn"
+        class="btn btn-primary btn-full">
+        🔐 Login Petugas
+      </button>
+
+      <button
+        id="sidebarLogoutBtn"
+        class="btn btn-danger btn-full hidden">
+        ↪ Logout
+      </button>
+
     </div>
+
   </aside>
 
+
+  <!-- ================= MAIN ================= -->
+
   <main class="main-content">
+
+    <!-- TOPBAR -->
+
     <header class="topbar">
-      <button id="menuToggle" class="menu-toggle">☰</button>
+
+      <button
+        id="menuToggle"
+        class="menu-toggle">
+        ☰
+      </button>
+
       <div class="topbar-title">
-        <span class="eyebrow">DATA QUALITY CONTROL</span>
-        <h1>QC Banana</h1>
+
+        <span class="eyebrow">
+          DATA QUALITY CONTROL
+        </span>
+
+        <h1>
+          QC Banana Plantation
+        </h1>
+
       </div>
+
       <div class="topbar-actions">
-        <div id="topUserStatus" class="status-pill">👤 Pengunjung</div>
-        <button id="loginBtn" class="btn btn-primary">🔐 Login Petugas</button>
-        <button id="logoutBtn" class="btn btn-danger hidden">↪ Logout</button>
+
+        <div
+          id="topUserStatus"
+          class="status-pill">
+          👤 Pengunjung
+        </div>
+
+        <button
+          id="loginBtn"
+          class="btn btn-primary">
+          🔐 Login Petugas
+        </button>
+
+        <button
+          id="logoutBtn"
+          class="btn btn-danger hidden">
+          ↪ Logout
+        </button>
+
       </div>
+
     </header>
 
+
+    <!-- ================= PAGE HEADER ================= -->
+
     <section class="page-header">
+
       <div>
-        <span class="eyebrow">DATA QC</span>
-        <h2>🌴 Propping</h2>
-        <p>Monitoring kegiatan propping dan kondisi tanaman.</p>
+
+        <span class="eyebrow">
+          DATA QC / PROPPING
+        </span>
+
+        <h2>
+          🌴 Pengamatan Kualitas Propping
+        </h2>
+
+        <p>
+          Monitoring kualitas dan pencapaian propping tanaman.
+          Data tabel mengikuti sheet <b>PROPING</b> pada Excel.
+        </p>
+
       </div>
+
       <div class="page-actions">
-        <button id="uploadExcelBtn" class="btn btn-light staff-only hidden">📤 Upload Excel/CSV</button>
-        <input id="excelFileInput" class="hidden" type="file" accept=".xlsx,.xls,.csv">
-        <button id="addDataBtn" class="btn btn-primary staff-only hidden">＋ Tambah Data</button>
+
+        <button
+          id="uploadExcelBtn"
+          class="btn btn-light staff-only hidden">
+          📤 Upload Excel
+        </button>
+
+        <input
+          id="excelFileInput"
+          class="hidden"
+          type="file"
+          accept=".xlsx,.xls,.csv">
+
+        <button
+          id="addDataBtn"
+          class="btn btn-primary staff-only hidden">
+          ＋ Input Manual
+        </button>
+
       </div>
+
     </section>
 
+
+    <!-- ================================================= -->
+    <!-- FILTER GRAFIK                                    -->
+    <!-- ================================================= -->
+
     <section class="filter-bar">
+
+      <!-- TAHUN -->
+
       <div class="filter-group">
-        <label for="yearFilter">📅 TAHUN</label>
-        <select id="yearFilter">
-          <option value="all">Semua Tahun</option>
+
+        <label for="proppingYearFilter">
+          📅 TAHUN
+        </label>
+
+        <select id="proppingYearFilter">
+
+          <option value="all">
+            Semua Tahun
+          </option>
+
           <option value="2022">2022</option>
           <option value="2023">2023</option>
           <option value="2024">2024</option>
           <option value="2025">2025</option>
           <option value="2026">2026</option>
+
         </select>
+
       </div>
+
+
+      <!-- MODE -->
+
       <div class="filter-group">
-        <label for="regionFilter">📍 WILAYAH / PG</label>
-        <select id="regionFilter">
-          <option value="all">Semua Wilayah</option>
-          <option value="PG1">PG1</option>
-          <option value="PG2">PG2</option>
-          <option value="PG3">PG3</option>
-          <option value="PG4">PG4</option>
+
+        <label for="proppingModeFilter">
+          🌴 PROPPING
+        </label>
+
+        <select id="proppingModeFilter">
+
+          <option value="all">
+            Semua
+          </option>
+
+          <option value="pg">
+            PG
+          </option>
+
+          <option value="wilayah">
+            Wilayah
+          </option>
+
         </select>
+
       </div>
-      <button id="resetFilters" class="btn filter-reset">↻ Reset Filter</button>
+
+
+      <button
+        id="proppingChartReset"
+        class="btn filter-reset">
+        ↻ Reset Filter
+      </button>
+
     </section>
+
+
+    <!-- ================================================= -->
+    <!-- GRAFIK                                            -->
+    <!-- ================================================= -->
+
+    <section class="propping-chart-panel panel">
+
+      <div class="panel-header chart-header">
+
+        <div>
+
+          <span class="eyebrow">
+            VISUALISASI DATA PROPPING
+          </span>
+
+          <h2>
+            📊 Grafik Terproping
+          </h2>
+
+          <p>
+            Persentase <b>Terproping</b> berdasarkan data
+            pada sheet <b>PROPING</b>.
+            Standar pencapaian: <b>95%</b>.
+          </p>
+
+        </div>
+
+        <div class="chart-filter-info">
+
+          Filter:
+          <b id="proppingChartFilterInfo">
+            Semua Tahun • Semua
+          </b>
+
+        </div>
+
+      </div>
+
+
+      <div
+        id="proppingChartArea"
+        class="propping-chart-area">
+
+
+        <!-- ================= PG BULAN ================= -->
+
+        <div
+          id="chartCardPGMonthly"
+          class="propping-chart-card">
+
+          <div class="chart-card-title">
+
+            <h3>
+              TerProping PG
+            </h3>
+
+            <p>
+              Persentase terproping per bulan
+            </p>
+
+          </div>
+
+          <div class="propping-chart-wrap">
+
+            <canvas
+              id="proppingPGMonthlyChart">
+            </canvas>
+
+          </div>
+
+        </div>
+
+
+        <!-- ================= PG WEEK ================= -->
+
+        <div
+          id="chartCardPGWeekly"
+          class="propping-chart-card">
+
+          <div class="chart-card-title">
+
+            <h3>
+              Weekly TerProping PG
+            </h3>
+
+            <p>
+              Persentase terproping per minggu
+            </p>
+
+          </div>
+
+          <div class="propping-chart-wrap">
+
+            <canvas
+              id="proppingPGWeeklyChart">
+            </canvas>
+
+          </div>
+
+        </div>
+
+
+        <!-- ================= WILAYAH BULAN ================= -->
+
+        <div
+          id="chartCardWilayahMonthly"
+          class="propping-chart-card">
+
+          <div class="chart-card-title">
+
+            <h3>
+              TerProping Wilayah
+            </h3>
+
+            <p>
+              Persentase terproping per bulan
+            </p>
+
+          </div>
+
+          <div class="propping-chart-wrap">
+
+            <canvas
+              id="proppingWilayahMonthlyChart">
+            </canvas>
+
+          </div>
+
+        </div>
+
+
+        <!-- ================= WILAYAH WEEK ================= -->
+
+        <div
+          id="chartCardWilayahWeekly"
+          class="propping-chart-card">
+
+          <div class="chart-card-title">
+
+            <h3>
+              Weekly TerProping Wilayah
+            </h3>
+
+            <p>
+              Persentase terproping per minggu
+            </p>
+
+          </div>
+
+          <div class="propping-chart-wrap">
+
+            <canvas
+              id="proppingWilayahWeeklyChart">
+            </canvas>
+
+          </div>
+
+        </div>
+
+
+      </div>
+
+    </section>
+
+
+    <!-- ================================================= -->
+    <!-- FILTER TABEL                                     -->
+    <!-- ================================================= -->
 
     <section class="table-panel">
+
       <div class="table-toolbar">
-        <div class="table-note">Filter diterapkan pada tabel. Petugas juga dapat Upload Excel/CSV atau Edit data.</div>
-        <div class="table-note"><b id="recordCount">0</b> data tampil</div>
+
+        <div class="table-note">
+
+          <b>Data Pengamatan Propping</b>
+
+          <br>
+
+          Filter di bawah ini
+          <b>hanya memengaruhi tabel</b>,
+          tidak mengubah grafik.
+
+        </div>
+
+        <div class="table-note">
+
+          <b id="proppingRecordCount">
+            0
+          </b>
+          data tampil
+
+        </div>
+
       </div>
+
+
+      <!-- FILTER TABEL -->
+
+      <section class="filter-bar">
+
+        <!-- WEEK -->
+
+        <div class="filter-group">
+
+          <label for="proppingWeekFilter">
+            📅 WEEK
+          </label>
+
+          <select id="proppingWeekFilter">
+
+            <option value="all">
+              Semua Week
+            </option>
+
+          </select>
+
+        </div>
+
+
+        <!-- PG -->
+
+        <div class="filter-group">
+
+          <label for="proppingPGFilter">
+            🏭 PG
+          </label>
+
+          <select id="proppingPGFilter">
+
+            <option value="all">
+              Semua PG
+            </option>
+
+            <option value="PG1">PG1</option>
+            <option value="PG2">PG2</option>
+            <option value="PG3">PG3</option>
+            <option value="PG4">PG4</option>
+
+          </select>
+
+        </div>
+
+
+        <!-- WILAYAH -->
+
+        <div class="filter-group">
+
+          <label for="proppingWilayahFilter">
+            📍 WILAYAH
+          </label>
+
+          <select id="proppingWilayahFilter">
+
+            <option value="all">
+              Semua Wilayah
+            </option>
+
+          </select>
+
+        </div>
+
+
+        <button
+          id="proppingTableReset"
+          class="btn filter-reset">
+
+          ↻ Reset
+
+        </button>
+
+      </section>
+
+
+      <!-- ================================================= -->
+      <!-- TABEL                                            -->
+      <!-- ================================================= -->
+
       <div class="table-wrap">
-        <table class="data-table">
-          <thead>
+
+        <table class="data-table propping-table">
+
+          <thead id="proppingTableHead">
+
             <tr>
+
+              <th>Div</th>
+              <th>PG</th>
+              <th>Wilayah</th>
+              <th>Block</th>
               <th>Tanggal</th>
               <th>Tahun</th>
-              <th>Wilayah / PG</th>
-              <th>Lokasi</th>
-              <th>Parameter</th>
-              <th>Hasil</th>
-              <th>Status</th>
-              <th id="actionHead" class="hidden">Aksi</th>
+              <th>Bulan</th>
+              <th>WK</th>
+              <th>Sample</th>
+              <th>Terproping</th>
+              <th>Guying</th>
+              <th>Unpropping</th>
+              <th>Kedalaman</th>
+              <th>Arah Pemasangan Tali</th>
+              <th>Ikatan Kencang</th>
+              <th>Ikatan Kendur</th>
+              <th>Ikatan Putus</th>
+              <th>FOR BAMBU</th>
+              <th>FOR DAUN</th>
+              <th>&gt;95%</th>
+              <th>Balance Shooting (n-2)</th>
+              <th>Nama Mandor</th>
+
             </tr>
+
           </thead>
-          <tbody id="dataTableBody"></tbody>
+
+          <tbody id="proppingTableBody">
+
+            <tr>
+
+              <td
+                colspan="23"
+                style="text-align:center;padding:30px;">
+
+                Memuat data Propping...
+
+              </td>
+
+            </tr>
+
+          </tbody>
+
         </table>
+
       </div>
+
     </section>
 
-    <footer class="footer">QC Banana • Data demo disimpan di localStorage browser</footer>
+
+    <!-- ================= CATATAN ================= -->
+
+    <section class="bibit-note panel">
+
+      <div class="panel-header">
+
+        <span class="eyebrow">
+          CATATAN
+        </span>
+
+        <h2>
+          Data Propping
+        </h2>
+
+      </div>
+
+      <p>
+        Tabel mengikuti sheet <b>PROPING</b>.
+        Grafik menggunakan nilai <b>Terproping</b>
+        pada kolom K dengan standar <b>95%</b>.
+      </p>
+
+    </section>
+
+
+    <footer class="footer">
+
+      QC Banana • Pengamatan Propping
+
+    </footer>
+
   </main>
 
-  <div id="loginModal" class="modal hidden">
-    <div class="modal-backdrop" data-close-login></div>
+
+  <!-- ================================================= -->
+  <!-- LOGIN MODAL                                      -->
+  <!-- ================================================= -->
+
+  <div
+    id="loginModal"
+    class="modal hidden">
+
+    <div
+      class="modal-backdrop"
+      data-close-login>
+    </div>
+
     <div class="modal-dialog">
-      <button class="modal-close" data-close-login>×</button>
-      <div class="modal-icon">🔐</div>
-      <h2>Login Petugas</h2>
-      <p>Masuk untuk mendapatkan akses tambah, edit, dan hapus data.</p>
+
+      <button
+        class="modal-close"
+        data-close-login>
+        ×
+      </button>
+
+      <div class="modal-icon">
+        🔐
+      </div>
+
+      <h2>
+        Login Petugas
+      </h2>
+
+      <p>
+        Masuk untuk mendapatkan akses
+        tambah, edit, hapus, dan upload.
+      </p>
+
       <form id="loginForm">
-        <label>Username</label>
-        <input id="username" required>
-        <label>Password</label>
-        <input id="password" type="password" required>
-        <div id="loginError" class="form-error hidden"></div>
-        <button class="btn btn-primary btn-full">Login</button>
+
+        <label>
+          Username
+        </label>
+
+        <input
+          id="username"
+          required>
+
+        <label>
+          Password
+        </label>
+
+        <input
+          id="password"
+          type="password"
+          required>
+
+        <div
+          id="loginError"
+          class="form-error hidden">
+        </div>
+
+        <button
+          class="btn btn-primary btn-full">
+          Login
+        </button>
+
       </form>
-      <div class="demo-credential">Demo: <b>petugas</b> / <b>qcbanana</b></div>
+
+      <div class="demo-credential">
+
+        Demo:
+        <b>petugas</b> /
+        <b>qcbanana</b>
+
+      </div>
+
     </div>
+
   </div>
 
-  <div id="dataModal" class="modal hidden">
-    <div class="modal-backdrop" data-close-data></div>
-    <div class="modal-dialog">
-      <button class="modal-close" data-close-data>×</button>
-      <div class="modal-icon">📝</div>
-      <h2 id="dataModalTitle">Tambah Data QC</h2>
-      <p>Isi data pengamatan. Data disimpan di browser.</p>
-      <form id="dataForm">
-        <input type="hidden" id="editIndex">
-        <label>Tanggal</label>
-        <input id="dataTanggal" placeholder="30/09/2026" required>
-        <label>Tahun</label>
-        <select id="dataTahun">
-          <option>2022</option>
-          <option>2023</option>
-          <option>2024</option>
-          <option>2025</option>
-          <option selected>2026</option>
-        </select>
-        <label>Wilayah / PG</label>
-        <select id="dataWilayah">
-          <option>PG1</option>
-          <option>PG2</option>
-          <option>PG3</option>
-          <option>PG4</option>
-        </select>
-        <label>Lokasi</label>
-        <input id="dataLokasi" placeholder="Blok A01" required>
-        <label>Parameter</label>
-        <input id="dataParameter" required>
-        <label>Hasil</label>
-        <input id="dataHasil" required>
-        <label>Status</label>
-        <select id="dataStatus">
-          <option>Baik</option>
-          <option>Perlu Monitoring</option>
-          <option>Tidak Sesuai</option>
-        </select>
-        <div style="height:14px"></div>
-        <button class="btn btn-primary btn-full">💾 Simpan Data</button>
-      </form>
+
+  <!-- ================================================= -->
+  <!-- DATA MODAL                                       -->
+  <!-- ================================================= -->
+
+  <div
+    id="dataModal"
+    class="modal hidden">
+
+    <div
+      class="modal-backdrop"
+      data-close-data>
     </div>
+
+    <div class="modal-dialog modal-large">
+
+      <button
+        class="modal-close"
+        data-close-data>
+        ×
+      </button>
+
+      <div class="modal-icon">
+        📝
+      </div>
+
+      <h2 id="proppingModalTitle">
+        Input Manual Propping
+      </h2>
+
+      <p>
+        Isi data pengamatan Propping.
+      </p>
+
+      <form id="proppingForm">
+
+        <input
+          type="hidden"
+          id="proppingEditIndex">
+
+        <div
+          id="proppingFormFields"
+          class="form-block">
+
+          <!-- Akan dibuat oleh JavaScript -->
+
+        </div>
+
+        <button
+          class="btn btn-primary btn-full"
+          type="submit">
+
+          💾 Simpan Data
+
+        </button>
+
+      </form>
+
+    </div>
+
   </div>
 
-  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+
+  <!-- SCRIPT UTAMA -->
+
   <script src="../js/script.js"></script>
+
 </body>
 </html>
