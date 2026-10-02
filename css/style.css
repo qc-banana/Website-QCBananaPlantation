@@ -1226,11 +1226,12 @@ select {
   }
 
   .dashboard-bars {
-    grid-template-columns: 1fr;
-    gap: 10px;
-    padding-left: 0;
-    padding-right: 0;
-  }
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  padding-left: 0;
+  padding-right: 0;
+}
 
   .dashboard-bars .bibit-single-chart {
     padding: 12px 6px;
@@ -1238,5 +1239,43 @@ select {
 
   .dash-bar-fill {
     width: 42px;
+  }
+}
+/* =========================================
+   DASHBOARD PROPPING
+========================================= */
+
+.dashboard-propping-section {
+  margin-top: 24px;
+}
+
+.dashboard-propping-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 24px;
+}
+
+.dashboard-propping-chart {
+  position: relative;
+  min-height: 390px;
+  padding: 20px;
+  border: 1px solid #dfe8e3;
+  border-radius: 18px;
+  background: #ffffff;
+}
+
+.dashboard-propping-chart h3 {
+  margin: 0 0 15px;
+  font-size: 20px;
+}
+
+.dashboard-propping-chart canvas {
+  width: 100% !important;
+  height: 320px !important;
+}
+
+@media (max-width: 900px) {
+  .dashboard-propping-grid {
+    grid-template-columns: 1fr;
   }
 }
