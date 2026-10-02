@@ -906,6 +906,1516 @@ document.addEventListener("DOMContentLoaded", () => {
   setupSidebar();
   setupAuth();
   updateUI();
-  if (pageKey() === "bibit") setupBibit(); else setupGeneric();
+
+  if (pageKey() === "bibit") {
+    setupBibit();
+  } else if (pageKey() === "propping") {
+    setupPropping();
+  } else {
+    setupGeneric();
+  }
+
   dashboard();
 });
+async function importPropping(file) {
+  if (!file) return;
+
+  // Pastikan hanya Petugas yang bisa upload
+  if (localStorage.getItem(LOGIN_KEY) !== "true") {
+    alert("Silakan login sebagai Petugas terlebih dahulu.");
+    return;
+  }
+
+  if (!qcSupabase) {
+    alert("Supabase belum terhubung.");
+    return;
+  }
+
+  try {
+    console.log("📥 Membaca file Excel Propping:", file.name);
+
+    // Baca file Excel
+    const buffer = await file.arrayBuffer();
+
+    const workbook = XLSX.read(buffer, {
+      type: "array",
+      raw: true,
+      cellDates: false
+    });
+
+    // Pastikan sheet PROPING tersedia
+    const sheetName = workbook.SheetNames.find(
+      name => name.trim().toUpperCase() === "PROPING"
+    );
+
+    if (!sheetName) {
+      alert('Sheet "PROPING" tidak ditemukan di file Excel.');
+      return;
+    }
+
+    const worksheet = workbook.Sheets[sheetName];
+
+    // Ambil seluruh isi sheet sebagai array
+    const allRows = XLSX.utils.sheet_to_json(worksheet, {
+      header: 1,
+      defval: "",
+      raw: true
+    });
+
+    console.log("📊 Total baris Excel:", allRows.length);
+
+    /*
+      Struktur Excel:
+      Baris 1-4 = bagian atas/template
+      Baris 5   = header
+      Baris 6+  = data
+
+      Jadi kita mulai dari index 5
+      karena JavaScript dimulai dari index 0.
+    */
+    const dataRows = allRows
+      .slice(5)
+      .filter(row => {
+        // Buang baris yang benar-benar kosong
+        return Array.isArray(row) &&
+          row.some(cell => String(cell ?? "").trim() !== "");
+      });
+
+    if (!dataRows.length) {
+      alert("Tidak ada data Propping yang ditemukan mulai baris 6.");
+      return;
+    }
+
+    console.log("✅ Data Propping yang akan diupload:", dataRows.length);
+    console.log("Contoh baris:", dataRows[0]);
+
+    // Konfirmasi sebelum mengganti data lama
+    const yakin = confirm(
+      `Ditemukan ${dataRows.length} baris data Propping.\n\n` +
+      `Data Propping lama di website akan diganti dengan data dari file ini.\n\n` +
+      `Lanjutkan upload?`
+    );
+
+    if (!yakin) return;
+
+    // Hapus data Propping lama
+    console.log("🗑️ Menghapus data Propping lama...");
+
+    const { error: deleteError } = await qcSupabase
+      .from("propping_data")
+      .delete()
+      .not("id", "is", null);
+
+    if (deleteError) {
+      console.error("❌ Gagal menghapus data lama:", deleteError);
+      alert("Gagal menghapus data Propping lama:\n" + deleteError.message);
+      return;
+    }
+
+    /*
+      Upload bertahap supaya tidak terlalu besar
+      dalam satu request.
+    */
+    const chunkSize = 500;
+
+    for (let i = 0; i < dataRows.length; i += chunkSize) {
+      const chunk = dataRows.slice(i, i + chunkSize);
+
+      const payload = chunk.map(row => ({
+        row_data: row
+      }));
+
+      console.log(
+        `📤 Upload ${i + 1} - ${Math.min(
+          i + chunk.length,
+          dataRows.length
+        )} dari ${dataRows.length}`
+      );
+
+      const { error: insertError } = await qcSupabase
+        .from("propping_data")
+        .insert(payload);
+
+      if (insertError) {
+        console.error("❌ Gagal upload Propping:", insertError);
+
+        alert(
+          "Upload Propping gagal pada bagian data ke-" +
+          (i + 1) +
+          ".\n\n" +
+          insertError.message
+        );
+
+        return;
+      }
+    }
+
+    console.log("🎉 Semua data Propping berhasil diupload.");
+
+    alert(
+      `✅ Upload Propping berhasil!\n\n` +
+      `${dataRows.length} baris data berhasil disimpan ke Supabase.`
+    );
+
+    // Refresh halaman supaya tabel + filter mengambil data terbaru
+    location.reload();
+
+  } catch (error) {
+    console.error("❌ Error importPropping:", error);
+
+    alert(
+      "Terjadi kesalahan saat membaca/upload Excel Propping:\n\n" +
+      error.message
+    );
+  }
+}
+async function setupPropping() {
+  console.log("✅ setupPropping aktif");
+
+  const rows = await getProppingFromSupabase();
+
+  console.log("📊 Data Propping dari Supabase:", rows.length);
+// ===============================
+// UPLOAD EXCEL PROPPING
+// ===============================
+const uploadBtn = document.getElementById("uploadExcelBtn");
+const excelInput = document.getElementById("excelFileInput");
+
+if (uploadBtn && excelInput) {
+
+  uploadBtn.addEventListener("click", () => {
+
+    // Cek login Petugas
+    if (localStorage.getItem(LOGIN_KEY) !== "true") {
+      alert("Silakan login sebagai Petugas terlebih dahulu.");
+      return;
+    }
+
+    excelInput.click();
+  });
+
+  excelInput.addEventListener("change", async (event) => {
+
+    const file = event.target.files?.[0];
+
+    if (!file) return;
+
+    await importPropping(file);
+
+    // Supaya file yang sama bisa dipilih lagi
+    excelInput.value = "";
+  });
+}
+  // Isi filter tabel
+  updateProppingWeekFilter(rows);
+  updateProppingPGFilter(rows);
+  updateProppingWilayahFilter(rows);
+
+  // Tampilkan tabel
+  renderPropping(rows);
+
+  // Tampilkan grafik
+  renderProppingCharts(rows);
+
+  // =========================
+  // FILTER GRAFIK
+  // =========================
+
+  const yearFilter = document.getElementById("proppingYearFilter");
+  const modeFilter = document.getElementById("proppingModeFilter");
+  const resetChart = document.getElementById("proppingChartReset");
+
+  yearFilter?.addEventListener("change", () => {
+    renderProppingCharts(rows);
+  });
+
+  modeFilter?.addEventListener("change", () => {
+    renderProppingCharts(rows);
+  });
+
+  resetChart?.addEventListener("click", () => {
+    if (yearFilter) yearFilter.value = "all";
+    if (modeFilter) modeFilter.value = "all";
+
+    renderProppingCharts(rows);
+  });
+
+  // =========================
+  // FILTER TABEL
+  // =========================
+
+  const weekFilter = document.getElementById("proppingWeekFilter");
+  const pgFilter = document.getElementById("proppingPGFilter");
+  const wilayahFilter = document.getElementById("proppingWilayahFilter");
+  const resetTable = document.getElementById("proppingTableReset");
+
+  [weekFilter, pgFilter, wilayahFilter].forEach(select => {
+    select?.addEventListener("change", () => {
+      renderPropping(rows);
+    });
+  });
+
+  resetTable?.addEventListener("click", () => {
+    if (weekFilter) weekFilter.value = "all";
+    if (pgFilter) pgFilter.value = "all";
+    if (wilayahFilter) wilayahFilter.value = "all";
+
+    renderPropping(rows);
+  });
+}
+
+
+// =====================================================
+// AMBIL DATA PROPPING DARI SUPABASE
+// =====================================================
+
+async function getProppingFromSupabase() {
+  if (!qcSupabase) {
+    console.error("❌ Supabase belum tersedia.");
+    return [];
+  }
+
+  const allRows = [];
+  const pageSize = 1000;
+  let from = 0;
+
+  while (true) {
+    const { data, error } = await qcSupabase
+      .from("propping_data")
+      .select("id,row_data")
+      .order("id", { ascending: true })
+      .range(from, from + pageSize - 1);
+
+    if (error) {
+      console.error("❌ Gagal mengambil data Propping:", error);
+      return [];
+    }
+
+    allRows.push(...(data || []));
+
+    console.log(
+      `📥 Mengambil data Propping ${from + 1} - ${from + (data?.length || 0)}`
+    );
+
+    if (!data || data.length < pageSize) {
+      break;
+    }
+
+    from += pageSize;
+  }
+
+  console.log(`📊 TOTAL DATA PROPPING DARI SUPABASE: ${allRows.length}`);
+
+  return allRows.map(row => ({
+    id: row.id,
+    values: Array.isArray(row.row_data)
+      ? row.row_data
+      : []
+  }));
+}
+
+
+// =====================================================
+// FILTER WEEK
+// Excel I = index 8
+// =====================================================
+
+function updateProppingWeekFilter(rows) {
+
+  const select = document.getElementById("proppingWeekFilter");
+
+  if (!select) return;
+
+  const weeks = [...new Set(
+    rows
+      .map(r => r.values?.[7] ?? "")
+      .map(v => String(v).trim())
+      .filter(v => v !== "")
+  )];
+
+  weeks.sort((a, b) => {
+
+    const na = parseInt(a.replace(/\D/g, ""), 10);
+    const nb = parseInt(b.replace(/\D/g, ""), 10);
+
+    if (Number.isFinite(na) && Number.isFinite(nb)) {
+      return na - nb;
+    }
+
+    return a.localeCompare(b);
+  });
+
+  select.innerHTML = `
+    <option value="all">Semua Week</option>
+
+    ${weeks.map(week => `
+      <option value="${esc(week)}">${esc(week)}</option>
+    `).join("")}
+  `;
+}
+
+
+// =====================================================
+// FILTER PG
+// Excel C = index 2
+// =====================================================
+
+function updateProppingPGFilter(rows) {
+
+  const select = document.getElementById("proppingPGFilter");
+
+  if (!select) return;
+
+  const pgs = [...new Set(
+    rows
+      .map(r => r.values?.[1] ?? "")
+      .map(v => String(v).trim())
+      .filter(v => v !== "")
+  )];
+
+  pgs.sort((a, b) => a.localeCompare(b));
+
+  select.innerHTML = `
+    <option value="all">Semua PG</option>
+
+    ${pgs.map(pg => `
+      <option value="${esc(pg)}">${esc(pg)}</option>
+    `).join("")}
+  `;
+}
+
+
+// =====================================================
+// FILTER WILAYAH
+// Excel D = index 3
+// =====================================================
+
+function updateProppingWilayahFilter(rows) {
+
+  const select = document.getElementById("proppingWilayahFilter");
+
+  if (!select) return;
+
+  const wilayahs = [...new Set(
+    rows
+      .map(r => r.values?.[2] ?? "")
+      .map(v => String(v).trim())
+      .filter(v => v !== "")
+  )];
+
+  wilayahs.sort((a, b) => a.localeCompare(b));
+
+  select.innerHTML = `
+    <option value="all">Semua Wilayah</option>
+
+    ${wilayahs.map(wilayah => `
+      <option value="${esc(wilayah)}">${esc(wilayah)}</option>
+    `).join("")}
+  `;
+}
+
+function formatProppingDate(value) {
+  if (value === null || value === undefined || value === "") {
+    return "";
+  }
+
+  // Kalau Excel mengirim angka serial tanggal
+  const num = Number(value);
+
+  if (Number.isFinite(num) && num > 30000 && num < 60000) {
+    const date = new Date(Date.UTC(1899, 11, 30) + num * 86400000);
+
+    const day = String(date.getUTCDate()).padStart(2, "0");
+    const month = String(date.getUTCMonth() + 1).padStart(2, "0");
+    const year = date.getUTCFullYear();
+
+    return `${day}/${month}/${year}`;
+  }
+
+  // Kalau sudah berupa tanggal biasa
+  if (value instanceof Date && !isNaN(value.getTime())) {
+    const day = String(value.getDate()).padStart(2, "0");
+    const month = String(value.getMonth() + 1).padStart(2, "0");
+    const year = value.getFullYear();
+
+    return `${day}/${month}/${year}`;
+  }
+
+  return String(value);
+}
+
+function formatProppingPercent(value) {
+  if (value === null || value === undefined || value === "") {
+    return "";
+  }
+
+  const num = Number(value);
+
+  if (!Number.isFinite(num)) {
+    return String(value);
+  }
+
+  return `${(num * 100).toFixed(1).replace(/\.0$/, "")}%`;
+}
+
+function renderPropping(rows) {
+  const tbody = document.getElementById("proppingTableBody");
+
+  if (!tbody) return;
+
+  const weekFilter =
+    document.getElementById("proppingWeekFilter")?.value || "all";
+
+  const pgFilter =
+    document.getElementById("proppingPGFilter")?.value || "all";
+
+  const wilayahFilter =
+    document.getElementById("proppingWilayahFilter")?.value || "all";
+
+  const filtered = rows.filter(row => {
+  const v = row.values || [];
+
+  const pg = String(v[1] ?? "").trim();
+  const wilayah = String(v[2] ?? "").trim();
+  const week = String(v[7] ?? "").trim();
+
+  if (weekFilter !== "all" && week !== weekFilter) {
+    return false;
+  }
+
+  if (pgFilter !== "all" && pg !== pgFilter) {
+    return false;
+  }
+
+  if (wilayahFilter !== "all" && wilayah !== wilayahFilter) {
+    return false;
+  }
+
+  return true;
+});
+
+// TAMBAHKAN INI
+const recordCount = document.getElementById("proppingRecordCount");
+
+if (recordCount) {
+  recordCount.textContent = filtered.length;
+}
+
+if (!filtered.length) {
+  tbody.innerHTML = `
+    <tr>
+      <td colspan="22" style="text-align:center;padding:30px;">
+        Tidak ada data Propping.
+      </td>
+    </tr>
+  `;
+  return;
+}
+  console.log("🔎 Filter Propping:", {
+    weekFilter,
+    pgFilter,
+    wilayahFilter,
+    hasil: filtered.length
+  });
+
+  if (!filtered.length) {
+    tbody.innerHTML = `
+      <tr>
+        <td colspan="22" style="text-align:center;padding:30px;">
+          Tidak ada data Propping.
+        </td>
+      </tr>
+    `;
+    return;
+  }
+
+  tbody.innerHTML = filtered.map(row => {
+    const v = row.values || [];
+
+    return `
+      <tr>
+        <td>${esc(v[0] ?? "")}</td>
+        <td>${esc(v[1] ?? "")}</td>
+        <td>${esc(v[2] ?? "")}</td>
+        <td>${esc(v[3] ?? "")}</td>
+        <td>${esc(formatProppingDate(v[4]))}</td>
+        <td>${esc(v[5] ?? "")}</td>
+        <td>${esc(v[6] ?? "")}</td>
+        <td>${esc(v[7] ?? "")}</td>
+        <td>${esc(v[8] ?? "")}</td>
+        <td>${esc(formatProppingPercent(v[9]))}</td>
+        <td>${esc(formatProppingPercent(v[10]))}</td>
+        <td>${esc(formatProppingPercent(v[11]))}</td>
+        <td>${esc(formatProppingPercent(v[12]))}</td>
+        <td>${esc(formatProppingPercent(v[13]))}</td>
+        <td>${esc(formatProppingPercent(v[14]))}</td>
+        <td>${esc(formatProppingPercent(v[15]))}</td>
+        <td>${esc(formatProppingPercent(v[16]))}</td>
+        <td>${esc(formatProppingPercent(v[17]))}</td>
+        <td>${esc(formatProppingPercent(v[18]))}</td>
+        <td>${esc(formatProppingPercent(v[19]))}</td>
+        <td>${esc(v[20] ?? "")}</td>
+        <td>${esc(v[21] ?? "")}</td>
+      </tr>
+    `;
+  }).join("");
+}
+function renderProppingCharts(rows) {
+  const area = document.getElementById("proppingChartArea");
+  if (!area) return;
+
+  const yearFilter =
+    document.getElementById("proppingYearFilter")?.value || "all";
+
+  const modeFilter =
+    document.getElementById("proppingModeFilter")?.value || "all";
+
+  const info =
+    document.getElementById("proppingChartFilterInfo");
+
+  // =====================================================
+  // INFO FILTER
+  // =====================================================
+
+  if (info) {
+    const tahunText =
+      yearFilter === "all"
+        ? "Semua Tahun"
+        : yearFilter;
+
+    const modeText =
+      modeFilter === "all"
+        ? "Semua"
+        : modeFilter === "pg"
+          ? "PG"
+          : "Wilayah";
+
+    info.textContent = `${tahunText} • ${modeText}`;
+  }
+
+  // =====================================================
+  // FILTER TAHUN
+  // =====================================================
+
+  const data = rows.filter(row => {
+    const v = row.values || [];
+
+    // F = Tahun
+    const tahun = String(v[5] ?? "").trim();
+
+    if (
+      yearFilter !== "all" &&
+      tahun !== String(yearFilter)
+    ) {
+      return false;
+    }
+
+    return true;
+  });
+
+  if (!data.length) {
+    area.innerHTML = `
+      <div class="chart-empty">
+        Belum ada data untuk ditampilkan.
+      </div>
+    `;
+    return;
+  }
+
+  // =====================================================
+  // MAPPING EXCEL TERBARU
+  //
+  // A = Div
+  // B = PG
+  // C = Wilayah
+  // D = Block
+  // E = Tanggal
+  // F = Tahun
+  // G = Bulan
+  // H = WK
+  // I = Sample
+  // J = TerProping
+  // =====================================================
+
+  function getPG(row) {
+    return String(
+      row.values?.[1] ?? ""
+    ).trim();
+  }
+
+  function getWilayah(row) {
+    return String(
+      row.values?.[2] ?? ""
+    ).trim();
+  }
+
+  function getYear(row) {
+    return String(
+      row.values?.[5] ?? ""
+    ).trim();
+  }
+
+  function getMonth(row) {
+    return String(
+      row.values?.[6] ?? ""
+    ).trim();
+  }
+
+  function getWeek(row) {
+    return String(
+      row.values?.[7] ?? ""
+    ).trim();
+  }
+
+  function getTerproping(row) {
+    const n = Number(
+      row.values?.[9]
+    );
+
+    if (!Number.isFinite(n)) {
+      return null;
+    }
+
+    // Kalau Excel menyimpan 0.95 → 95
+    // Kalau Excel menyimpan 95 → tetap 95
+    return n <= 1 ? n * 100 : n;
+  }
+
+  // =====================================================
+  // AVERAGE
+  // =====================================================
+
+  function average(values) {
+    const valid = values.filter(
+      value =>
+        Number.isFinite(value)
+    );
+
+    if (!valid.length) {
+      return null;
+    }
+
+    return (
+      valid.reduce(
+        (sum, value) =>
+          sum + value,
+        0
+      ) / valid.length
+    );
+  }
+
+  // =====================================================
+  // URUTAN BULAN
+  // =====================================================
+
+  const monthOrder = {
+    jan: 1,
+    januari: 1,
+
+    feb: 2,
+    februari: 2,
+
+    mar: 3,
+    maret: 3,
+
+    apr: 4,
+    april: 4,
+
+    may: 5,
+    mei: 5,
+
+    jun: 6,
+    juni: 6,
+
+    jul: 7,
+    juli: 7,
+
+    aug: 8,
+    agustus: 8,
+
+    sep: 9,
+    september: 9,
+
+    oct: 10,
+    okt: 10,
+    october: 10,
+    oktober: 10,
+
+    nov: 11,
+    november: 11,
+
+    dec: 12,
+    desember: 12
+  };
+
+  function monthNumber(value) {
+    const text =
+      String(value ?? "")
+        .trim()
+        .toLowerCase()
+        .replace(/[^a-z]/g, "");
+
+    if (monthOrder[text]) {
+      return monthOrder[text];
+    }
+
+    const num = Number(value);
+
+    if (
+      Number.isFinite(num) &&
+      num >= 1 &&
+      num <= 12
+    ) {
+      return num;
+    }
+
+    return 99;
+  }
+
+  function monthLabel(number) {
+    const names = [
+      "",
+      "Jan",
+      "Feb",
+      "Mar",
+      "Apr",
+      "Mei",
+      "Jun",
+      "Jul",
+      "Agu",
+      "Sep",
+      "Okt",
+      "Nov",
+      "Des"
+    ];
+
+    return names[number] || "";
+  }
+
+  // =====================================================
+  // 5 BULAN TERAKHIR
+  //
+  // PENTING:
+  // Sekarang bukan hanya berdasarkan nomor bulan.
+  // Tapi berdasarkan TAHUN + BULAN.
+  //
+  // Contoh:
+  // 2025-11
+  // 2025-12
+  // 2026-01
+  // 2026-02
+  // 2026-03
+  // =====================================================
+
+  const monthMap = new Map();
+
+  data.forEach(row => {
+    const tahun =
+      Number(getYear(row));
+
+    const bulan =
+      monthNumber(getMonth(row));
+
+    if (
+      !Number.isFinite(tahun) ||
+      bulan < 1 ||
+      bulan > 12
+    ) {
+      return;
+    }
+
+    const key =
+      `${tahun}-${String(bulan).padStart(2, "0")}`;
+
+    if (!monthMap.has(key)) {
+      monthMap.set(key, {
+        key,
+        tahun,
+        bulan,
+        label: monthLabel(bulan)
+      });
+    }
+  });
+
+  const monthData = [
+    ...monthMap.values()
+  ]
+    .sort((a, b) => {
+      if (a.tahun !== b.tahun) {
+        return a.tahun - b.tahun;
+      }
+
+      return a.bulan - b.bulan;
+    })
+    .slice(-5);
+
+  // Label untuk grafik
+  const months =
+    monthData.map(item => {
+      // Kalau semua tahun, tampilkan tahun
+      // supaya tidak membingungkan.
+      if (yearFilter === "all") {
+        return `${item.label} ${item.tahun}`;
+      }
+
+      return item.label;
+    });
+
+  // =====================================================
+  // 5 WEEK TERAKHIR
+  // =====================================================
+
+  const weekMap = new Map();
+
+  data.forEach(row => {
+    const week =
+      getWeek(row);
+
+    if (!week) {
+      return;
+    }
+
+    const numbers =
+      week.match(/\d+/g);
+
+    let weekNumber = null;
+
+    if (
+      numbers &&
+      numbers.length
+    ) {
+      weekNumber =
+        Number(
+          numbers[numbers.length - 1]
+        );
+    }
+
+    const key = week;
+
+    if (!weekMap.has(key)) {
+      weekMap.set(key, {
+        raw: week,
+        number:
+          Number.isFinite(weekNumber)
+            ? weekNumber
+            : 999999
+      });
+    }
+  });
+
+  const weeks = [
+    ...weekMap.values()
+  ]
+    .sort((a, b) => {
+      return a.number - b.number;
+    })
+    .slice(-5)
+    .map(item => item.raw);
+
+  // =====================================================
+  // DAFTAR PG
+  // =====================================================
+
+  const pgs = [
+    ...new Set(
+      data
+        .map(row => getPG(row))
+        .filter(Boolean)
+    )
+  ].sort();
+
+  // =====================================================
+  // DAFTAR WILAYAH
+  // =====================================================
+
+  const wilayah = [
+    ...new Set(
+      data
+        .map(row => getWilayah(row))
+        .filter(Boolean)
+    )
+  ].sort();
+
+  // =====================================================
+  // RUMUS ALL PG BULANAN
+  //
+  // Equivalent:
+  // AVERAGEIFS(TerProping; Bulan; Bulan; Tahun; Tahun)
+  // =====================================================
+
+  function averageAllByMonth(index) {
+    const target =
+      monthData[index];
+
+    if (!target) {
+      return null;
+    }
+
+    return average(
+      data
+        .filter(row => {
+          const tahun =
+            Number(getYear(row));
+
+          const bulan =
+            monthNumber(
+              getMonth(row)
+            );
+
+          return (
+            tahun === target.tahun &&
+            bulan === target.bulan
+          );
+        })
+        .map(row =>
+          getTerproping(row)
+        )
+    );
+  }
+
+  // =====================================================
+  // RUMUS PG BULANAN
+  // =====================================================
+
+  function averagePGByMonth(
+    pg,
+    index
+  ) {
+    const target =
+      monthData[index];
+
+    if (!target) {
+      return null;
+    }
+
+    return average(
+      data
+        .filter(row => {
+          const tahun =
+            Number(getYear(row));
+
+          const bulan =
+            monthNumber(
+              getMonth(row)
+            );
+
+          return (
+            getPG(row) === pg &&
+            tahun === target.tahun &&
+            bulan === target.bulan
+          );
+        })
+        .map(row =>
+          getTerproping(row)
+        )
+    );
+  }
+
+  // =====================================================
+  // RUMUS WILAYAH BULANAN
+  // =====================================================
+
+  function averageWilayahByMonth(
+    w,
+    index
+  ) {
+    const target =
+      monthData[index];
+
+    if (!target) {
+      return null;
+    }
+
+    return average(
+      data
+        .filter(row => {
+          const tahun =
+            Number(getYear(row));
+
+          const bulan =
+            monthNumber(
+              getMonth(row)
+            );
+
+          return (
+            getWilayah(row) === w &&
+            tahun === target.tahun &&
+            bulan === target.bulan
+          );
+        })
+        .map(row =>
+          getTerproping(row)
+        )
+    );
+  }
+
+  // =====================================================
+  // RUMUS ALL PG WEEKLY
+  // =====================================================
+
+  function averageAllByWeek(
+    week
+  ) {
+    return average(
+      data
+        .filter(row =>
+          getWeek(row) === week
+        )
+        .map(row =>
+          getTerproping(row)
+        )
+    );
+  }
+
+  // =====================================================
+  // RUMUS PG WEEKLY
+  // =====================================================
+
+  function averagePGByWeek(
+    pg,
+    week
+  ) {
+    return average(
+      data
+        .filter(row =>
+          getPG(row) === pg &&
+          getWeek(row) === week
+        )
+        .map(row =>
+          getTerproping(row)
+        )
+    );
+  }
+
+  // =====================================================
+  // RUMUS WILAYAH WEEKLY
+  // =====================================================
+
+  function averageWilayahByWeek(
+    w,
+    week
+  ) {
+    return average(
+      data
+        .filter(row =>
+          getWilayah(row) === w &&
+          getWeek(row) === week
+        )
+        .map(row =>
+          getTerproping(row)
+        )
+    );
+  }
+
+  // =====================================================
+  // RESET AREA CHART
+  // =====================================================
+
+  area.innerHTML = "";
+
+  // =====================================================
+  // BUAT CHART
+  // =====================================================
+
+  function addChart(
+    title,
+    labels,
+    datasets
+  ) {
+    const wrapper =
+      document.createElement("div");
+
+    wrapper.style.cssText = `
+      width:100%;
+      height:400px;
+      margin-bottom:35px;
+      position:relative;
+    `;
+
+    wrapper.innerHTML = `
+      <h3 style="
+        margin-bottom:10px;
+        font-size:18px;
+        font-weight:700;
+      ">
+        ${title}
+      </h3>
+
+      <canvas></canvas>
+    `;
+
+    area.appendChild(wrapper);
+
+    const canvas =
+      wrapper.querySelector(
+        "canvas"
+      );
+
+    new Chart(canvas, {
+      type: "bar",
+
+      data: {
+        labels,
+        datasets
+      },
+
+      options: {
+        responsive: true,
+
+        maintainAspectRatio: false,
+
+        interaction: {
+          mode: "index",
+          intersect: false
+        },
+
+        datasets: {
+          bar: {
+            barPercentage: 0.55,
+            categoryPercentage: 0.65
+          }
+        },
+
+        scales: {
+          y: {
+            min: 0,
+            max: 120,
+
+            ticks: {
+              callback:
+                value =>
+                  `${value}%`
+            },
+
+            title: {
+              display: true,
+              text:
+                "Persentase TerProping"
+            }
+          },
+
+          x: {
+            title: {
+              display: true,
+              text: "Periode"
+            }
+          }
+        },
+
+        plugins: {
+          legend: {
+            position: "bottom"
+          },
+
+          tooltip: {
+            callbacks: {
+              label:
+                context => {
+                  const value =
+                    context.raw;
+
+                  if (
+                    value === null ||
+                    value === undefined
+                  ) {
+                    return `${context.dataset.label}: -`;
+                  }
+
+                  return `${context.dataset.label}: ${Number(value).toFixed(1)}%`;
+                }
+            }
+          }
+        }
+      }
+    });
+  }
+
+  // =====================================================
+  // DATASET PG = BATANG
+  // =====================================================
+
+  function makePGDataset(
+    pg,
+    values
+  ) {
+    return {
+      label: pg,
+
+      data: values,
+
+      type: "bar",
+
+      borderWidth: 1
+    };
+  }
+
+  // =====================================================
+  // ALL PG = GARIS
+  // =====================================================
+
+  function makeAllPGDataset(
+    values
+  ) {
+    return {
+      label: "ALL PG",
+
+      data: values,
+
+      type: "line",
+
+      fill: false,
+
+      tension: 0.3,
+
+      borderWidth: 3,
+
+      pointRadius: 4,
+
+      pointHoverRadius: 6,
+
+      order: 1
+    };
+  }
+
+  // =====================================================
+  // STD 95% = GARIS
+  // =====================================================
+
+  function makeStdDataset(
+    length
+  ) {
+    return {
+      label: "Std 95%",
+
+      type: "line",
+
+      data:
+        Array(length).fill(95),
+
+      borderWidth: 3,
+
+      borderDash: [
+        8,
+        5
+      ],
+
+      pointRadius: 0,
+
+      pointHoverRadius: 0,
+
+      fill: false,
+
+      order: 0
+    };
+  }
+
+  // =====================================================
+  // 1. PG BULANAN
+  // =====================================================
+
+  if (
+    modeFilter === "all" ||
+    modeFilter === "pg"
+  ) {
+    const pgDatasets =
+      pgs.map(pg =>
+        makePGDataset(
+          pg,
+          months.map(
+            (_, index) =>
+              averagePGByMonth(
+                pg,
+                index
+              )
+          )
+        )
+      );
+
+    addChart(
+      "📊 TerProping PG — Per Bulan",
+      months,
+
+      [
+        // ALL PG = GARIS
+        makeAllPGDataset(
+          months.map(
+            (_, index) =>
+              averageAllByMonth(
+                index
+              )
+          )
+        ),
+
+        // PG1, PG2, PG3, PG4 = BATANG
+        ...pgDatasets,
+
+        // STD 95% = GARIS
+        makeStdDataset(
+          months.length
+        )
+      ]
+    );
+  }
+
+  // =====================================================
+  // 2. PG WEEKLY
+  // =====================================================
+
+  if (
+    modeFilter === "all" ||
+    modeFilter === "pg"
+  ) {
+    const pgDatasets =
+      pgs.map(pg =>
+        makePGDataset(
+          pg,
+          weeks.map(
+            week =>
+              averagePGByWeek(
+                pg,
+                week
+              )
+          )
+        )
+      );
+
+    addChart(
+      "📊 TerProping PG — Per Week",
+      weeks,
+
+      [
+        // ALL PG = GARIS
+        makeAllPGDataset(
+          weeks.map(
+            week =>
+              averageAllByWeek(
+                week
+              )
+          )
+        ),
+
+        // PG = BATANG
+        ...pgDatasets,
+
+        // STD = GARIS
+        makeStdDataset(
+          weeks.length
+        )
+      ]
+    );
+  }
+
+  // =====================================================
+  // 3. WILAYAH BULANAN
+  // =====================================================
+
+  if (
+    modeFilter === "all" ||
+    modeFilter === "wilayah"
+  ) {
+    const wilayahDatasets =
+      wilayah.map(w => ({
+        label: w,
+
+        data: months.map(
+          (_, index) =>
+            averageWilayahByMonth(
+              w,
+              index
+            )
+        ),
+
+        type: "bar",
+
+        borderWidth: 1
+      }));
+
+    addChart(
+      "📊 TerProping Wilayah — Per Bulan",
+      months,
+
+      [
+        // ALL PG = GARIS
+        makeAllPGDataset(
+          months.map(
+            (_, index) =>
+              averageAllByMonth(
+                index
+              )
+          )
+        ),
+
+        // WILAYAH = BATANG
+        ...wilayahDatasets,
+
+        // STD = GARIS
+        makeStdDataset(
+          months.length
+        )
+      ]
+    );
+  }
+
+  // =====================================================
+  // 4. WILAYAH WEEKLY
+  // =====================================================
+
+  if (
+    modeFilter === "all" ||
+    modeFilter === "wilayah"
+  ) {
+    const wilayahDatasets =
+      wilayah.map(w => ({
+        label: w,
+
+        data: weeks.map(
+          week =>
+            averageWilayahByWeek(
+              w,
+              week
+            )
+        ),
+
+        type: "bar",
+
+        borderWidth: 1
+      }));
+
+    addChart(
+      "📊 TerProping Wilayah — Per Week",
+      weeks,
+
+      [
+        // ALL PG = GARIS
+        makeAllPGDataset(
+          weeks.map(
+            week =>
+              averageAllByWeek(
+                week
+              )
+          )
+        ),
+
+        // WILAYAH = BATANG
+        ...wilayahDatasets,
+
+        // STD = GARIS
+        makeStdDataset(
+          weeks.length
+        )
+      ]
+    );
+  }
+
+  // =====================================================
+  // KALAU TIDAK ADA CHART
+  // =====================================================
+
+  if (!area.children.length) {
+    area.innerHTML = `
+      <div class="chart-empty">
+        Belum ada data grafik untuk ditampilkan.
+      </div>
+    `;
+  }
+}
